@@ -2,8 +2,8 @@
 # Helper script to start/stop/status the auto-commit watcher
 
 SCRIPT_DIR="/Users/buyer/Data Analytics V5"
-PID_FILE="$SCRIPT_DIR/auto-commit.pid"
-LOG_FILE="$SCRIPT_DIR/auto-commit.log"
+PID_FILE="${SCRIPT_DIR}/auto-commit.pid"
+LOG_FILE="${SCRIPT_DIR}/auto-commit.log"
 
 case "$1" in
     start)
@@ -20,8 +20,9 @@ case "$1" in
         echo "🚀 Starting auto-commit watcher..."
         cd "$SCRIPT_DIR" || exit 1
         nohup ./auto-commit.sh > "$LOG_FILE" 2>&1 &
-        echo $! > "$PID_FILE"
-        echo "✅ Auto-commit started (PID: $(cat $PID_FILE))"
+        PID=$!
+        echo "$PID" > "$PID_FILE"
+        echo "✅ Auto-commit started (PID: $PID)"
         echo "📝 Logs: $LOG_FILE"
         echo "💡 Use './manage-auto-commit.sh stop' to stop it"
         ;;

@@ -4,6 +4,12 @@
 REPO_PATH="/Users/buyer/Data Analytics V5"
 cd "$REPO_PATH" || exit 1
 
+# Ensure we're in the right directory
+if [ ! -d ".git" ]; then
+    echo "Error: Not a git repository. Exiting."
+    exit 1
+fi
+
 echo "Starting auto-commit watcher for: $REPO_PATH"
 echo "Press Ctrl+C to stop"
 
