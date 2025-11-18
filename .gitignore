@@ -79,3 +79,7 @@ temp/
 reports/
 !reports/.gitkeep
 
+# Auto-commit logs
+auto-commit.log
+auto-commit.pid
+

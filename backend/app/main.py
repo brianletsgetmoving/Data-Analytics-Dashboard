@@ -4,7 +4,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .config import settings
-from .api.v1 import analytics, customers, jobs, revenue, leads, sales
+from .api.v1 import (
+    analytics,
+    customers,
+    jobs,
+    revenue,
+    leads,
+    sales,
+    profitability,
+    customer_behavior,
+    operational,
+    benchmarking,
+    forecasting,
+)
 
 app = FastAPI(
     title=settings.api_title,
@@ -29,6 +41,11 @@ app.include_router(jobs.router, prefix=f"{settings.api_prefix}/jobs", tags=["job
 app.include_router(revenue.router, prefix=f"{settings.api_prefix}/revenue", tags=["revenue"])
 app.include_router(leads.router, prefix=f"{settings.api_prefix}/leads", tags=["leads"])
 app.include_router(sales.router, prefix=f"{settings.api_prefix}/sales", tags=["sales"])
+app.include_router(profitability.router, prefix=f"{settings.api_prefix}/profitability", tags=["profitability"])
+app.include_router(customer_behavior.router, prefix=f"{settings.api_prefix}/customer-behavior", tags=["customer-behavior"])
+app.include_router(operational.router, prefix=f"{settings.api_prefix}/operational", tags=["operational"])
+app.include_router(benchmarking.router, prefix=f"{settings.api_prefix}/benchmarking", tags=["benchmarking"])
+app.include_router(forecasting.router, prefix=f"{settings.api_prefix}/forecasting", tags=["forecasting"])
 
 
 @app.get("/")
