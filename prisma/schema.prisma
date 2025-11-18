@@ -1,0 +1,362 @@
+// Prisma schema for Data Analytics Pipeline
+// PostgreSQL 16 with connection pooling support
+
+generator client {
+  provider                    = "prisma-client-py"
+  interface                   = "sync"
+  enable_experimental_decimal = true
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+// Enums
+enum JobStatus {
+  QUOTED
+  BOOKED
+  LOST
+  CANCELLED
+  CLOSED
+}
+
+enum MergeMethod {
+  EXACT_MATCH
+  SPLINK_HIGH_CONFIDENCE
+  SPLINK_MEDIUM_CONFIDENCE
+  MANUAL_APPROVAL
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNCERTAIN
+}
+
+// Model 1: Job (unified from 7 CSV files, 2019-2025)
+model Job {
+  id                 String     @id @default(uuid())
+  jobId              String?    @unique @map("job_id")
+  jobNumber          String?    @map("job_number")
+  opportunityStatus  JobStatus? @map("opportunity_status")
+  jobDate            DateTime?  @map("job_date") @db.Timestamp
+  salesPersonName    String?    @map("sales_person_name")
+  salesPersonId      String?    @map("sales_person_id")
+  branchName         String?    @map("branch_name")
+  branchId           String?    @map("branch_id")
+  jobType            String?    @map("job_type")
+  customerName       String?    @map("customer_name")
+  customerEmail      String?    @map("customer_email")
+  customerPhone      String?    @map("customer_phone")
+  referralSource     String?    @map("referral_source")
+  affiliateName      String?    @map("affiliate_name")
+  createdAtUtc       DateTime?  @map("created_at_utc") @db.Timestamp
+  bookedAtUtc        DateTime?  @map("booked_at_utc") @db.Timestamp
+  hourlyRateQuoted   Decimal?   @map("hourly_rate_quoted") @db.Decimal(10, 2)
+  totalEstimatedCost Decimal?   @map("total_estimated_cost") @db.Decimal(10, 2)
+  actualNumberCrew   Int?       @map("actual_number_crew")
+  actualNumberTrucks Int?       @map("actual_number_trucks")
+  hourlyRateBilled   Decimal?   @map("hourly_rate_billed") @db.Decimal(10, 2)
+  totalActualCost    Decimal?   @map("total_actual_cost") @db.Decimal(10, 2)
+  originAddress      String?    @map("origin_address")
+  originStreet       String?    @map("origin_street")
+  originCity         String?    @map("origin_city")
+  originState        String?    @map("origin_state")
+  originZip          String?    @map("origin_zip")
+  originType         String?    @map("origin_type")
+  destinationAddress String?    @map("destination_address")
+  destinationStreet  String?    @map("destination_street")
+  destinationCity    String?    @map("destination_city")
+  destinationState   String?    @map("destination_state")
+  destinationZip     String?    @map("destination_zip")
+  destinationType    String?    @map("destination_type")
+  customerId         String?    @map("customer_id")
+  isDuplicate        Boolean    @default(false) @map("is_duplicate")
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+
+  customer    Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  salesPerson SalesPerson? @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
+  branch      Branch?     @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([salesPersonId])
+  @@index([branchId])
+  @@index([jobDate])
+  @@index([branchName])
+  @@index([originCity])
+  @@index([destinationCity])
+  @@index([customerId, opportunityStatus])
+  @@map("jobs")
+}
+
+// Model 2: BadLead
+model BadLead {
+  id               String    @id @default(uuid())
+  provider         String?
+  customerName     String?   @map("customer_name")
+  customerEmail    String?   @map("customer_email")
+  customerPhone    String?   @map("customer_phone")
+  moveDate         DateTime? @map("move_date") @db.Date
+  dateLeadReceived DateTime? @map("date_lead_received") @db.Date
+  leadBadReason    String?   @map("lead_bad_reason")
+  customerId       String?   @map("customer_id")
+  leadStatusId     String?   @map("lead_status_id")
+  leadSourceId     String?   @map("lead_source_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  leadStatus LeadStatus? @relation(fields: [leadStatusId], references: [id], onDelete: SetNull)
+  leadSource LeadSource? @relation(fields: [leadSourceId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([customerEmail])
+  @@index([customerPhone])
+  @@index([leadStatusId])
+  @@index([leadSourceId])
+  @@map("bad_leads")
+}
+
+// Model 3: BookedOpportunity
+model BookedOpportunity {
+  id              String    @id @default(uuid())
+  quoteNumber     String    @unique @map("quote_number")
+  status          String?
+  customerName    String?   @map("customer_name")
+  email           String?
+  phoneNumber     String?   @map("phone_number")
+  branchName      String?   @map("branch_name")
+  movingFrom      String?   @map("moving_from")
+  movingTo        String?   @map("moving_to")
+  serviceDate     DateTime? @map("service_date") @db.Date
+  serviceType     String?   @map("service_type")
+  hourlyRate      Decimal?  @map("hourly_rate") @db.Decimal(10, 2)
+  estimatedAmount Decimal?  @map("estimated_amount") @db.Decimal(10, 2)
+  invoicedAmount  Decimal?  @map("invoiced_amount") @db.Decimal(10, 2)
+  referralSource  String?   @map("referral_source")
+  salesPersonId   String?   @map("sales_person_id")
+  branchId        String?   @map("branch_id")
+  bookedDate      DateTime? @map("booked_date") @db.Timestamp
+  customerId      String?   @map("customer_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  customer    Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  salesPerson SalesPerson? @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
+  branch      Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  leadStatus  LeadStatus[]
+  lostLeads   LostLead[]
+
+  @@index([customerId])
+  @@index([salesPersonId])
+  @@index([branchId])
+  @@index([email])
+  @@index([phoneNumber])
+  @@index([bookedDate])
+  @@index([customerId, bookedDate])
+  @@map("booked_opportunities")
+}
+
+// Model 4: LeadStatus
+model LeadStatus {
+  id                  String   @id @default(uuid())
+  quoteNumber         String   @unique @map("quote_number")
+  bookedOpportunityId String?  @map("booked_opportunity_id")
+  branchName          String?  @map("branch_name")
+  branchId            String?  @map("branch_id")
+  status              String?
+  salesPersonId       String?  @map("sales_person_id")
+  timeToContact       String?  @map("time_to_contact")
+  referralSource      String?  @map("referral_source")
+  leadSourceId        String?  @map("lead_source_id")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  bookedOpportunity BookedOpportunity? @relation(fields: [bookedOpportunityId], references: [id], onDelete: SetNull)
+  salesPerson       SalesPerson?       @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
+  leadSource        LeadSource?        @relation(fields: [leadSourceId], references: [id], onDelete: SetNull)
+  branch            Branch?            @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  badLeads          BadLead[]
+
+  @@index([bookedOpportunityId])
+  @@index([salesPersonId])
+  @@index([leadSourceId])
+  @@index([branchId])
+  @@map("lead_status")
+}
+
+// Model 5: LostLead
+model LostLead {
+  id                  String    @id @default(uuid())
+  quoteNumber         String    @unique @map("quote_number")
+  bookedOpportunityId String?   @map("booked_opportunity_id")
+  name                String?
+  lostDate            DateTime? @map("lost_date") @db.Date
+  moveDate            DateTime? @map("move_date") @db.Date
+  reason              String?
+  dateReceived        DateTime? @map("date_received") @db.Timestamp
+  timeToFirstContact  String?   @map("time_to_first_contact")
+  leadSourceId        String?   @map("lead_source_id")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  bookedOpportunity BookedOpportunity? @relation(fields: [bookedOpportunityId], references: [id], onDelete: SetNull)
+  leadSource        LeadSource?        @relation(fields: [leadSourceId], references: [id], onDelete: SetNull)
+
+  @@index([bookedOpportunityId])
+  @@index([leadSourceId])
+  @@map("lost_leads")
+}
+
+// Model 6: UserPerformance
+model UserPerformance {
+  id             String   @id @default(uuid())
+  name           String   @unique
+  salesPersonId  String?  @map("sales_person_id")
+  userStatus     String?  @map("user_status")
+  totalCalls     Int?     @map("total_calls")
+  avgCallsPerDay Decimal? @map("avg_calls_per_day") @db.Decimal(10, 2)
+  inboundCount   Int?     @map("inbound_count")
+  outboundCount  Int?     @map("outbound_count")
+  missedPercent  Decimal? @map("missed_percent") @db.Decimal(5, 2)
+  avgHandleTime  String?  @map("avg_handle_time")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  salesPerson SalesPerson? @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
+
+  @@index([salesPersonId])
+  @@map("user_performance")
+}
+
+// Model 7: SalesPerformance
+model SalesPerformance {
+  id               String   @id @default(uuid())
+  name             String   @unique
+  salesPersonId    String?  @map("sales_person_id")
+  leadsReceived    Int?     @map("leads_received")
+  bad              Int?
+  percentBad       Decimal? @map("percent_bad") @db.Decimal(5, 2)
+  sent             Int?
+  percentSent      Decimal? @map("percent_sent") @db.Decimal(5, 2)
+  pending          Int?
+  percentPending   Decimal? @map("percent_pending") @db.Decimal(5, 2)
+  booked           Int?
+  percentBooked    Decimal? @map("percent_booked") @db.Decimal(5, 2)
+  lost             Int?
+  percentLost      Decimal? @map("percent_lost") @db.Decimal(5, 2)
+  cancelled        Int?
+  percentCancelled Decimal? @map("percent_cancelled") @db.Decimal(5, 2)
+  bookedTotal      Decimal? @map("booked_total") @db.Decimal(10, 2)
+  averageBooking   Decimal? @map("average_booking") @db.Decimal(10, 2)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  salesPerson SalesPerson? @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
+
+  @@index([salesPersonId])
+  @@map("sales_performance")
+}
+
+// Model 8: Customer (Central Unified Model - Core of Phase 3)
+model Customer {
+  id                 String   @id @default(uuid())
+  smartmovingId      String?  @unique @map("smartmoving_id")
+  name               String
+  firstName          String?  @map("first_name")
+  lastName           String?  @map("last_name")
+  email              String?  @unique
+  phone              String?  @unique
+  originCity         String?  @map("origin_city")
+  originState        String?  @map("origin_state")
+  originZip          String?  @map("origin_zip")
+  originAddress      String?  @map("origin_address")
+  destinationCity    String?  @map("destination_city")
+  destinationState   String?  @map("destination_state")
+  destinationZip     String?  @map("destination_zip")
+  destinationAddress String?  @map("destination_address")
+  gender             Gender?
+  genderConfidence   Decimal? @map("gender_confidence") @db.Decimal(3, 2)
+  genderMethod       String?  @map("gender_method")
+  mergedFromIds      String[] @default([]) @map("merged_from_ids")
+  isPrimaryRecord    Boolean  @default(true) @map("is_primary_record")
+  firstLeadDate      DateTime? @map("first_lead_date") @db.Timestamp
+  conversionDate     DateTime? @map("conversion_date") @db.Timestamp
+  mergeHistory       Json?    @map("merge_history")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  jobs                Job[]
+  badLeads            BadLead[]
+  bookedOpportunities BookedOpportunity[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([originCity])
+  @@index([destinationCity])
+  @@index([firstName])
+  @@index([lastName])
+  @@index([firstLeadDate])
+  @@index([conversionDate])
+  @@map("customers")
+}
+
+// Model 9: SalesPerson (Lookup Table for Normalized Sales Person Names)
+model SalesPerson {
+  id             String   @id @default(uuid())
+  name           String   @unique
+  normalizedName String   @map("normalized_name")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  jobs                Job[]
+  bookedOpportunities BookedOpportunity[]
+  leadStatus          LeadStatus[]
+  userPerformance     UserPerformance[]
+  salesPerformance    SalesPerformance[]
+
+  @@index([normalizedName])
+  @@map("sales_persons")
+}
+
+// Model 10: LeadSource (Lookup Table for Normalized Lead Sources)
+model LeadSource {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  category  String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  leadStatus LeadStatus[]
+  badLeads   BadLead[]
+  lostLeads  LostLead[]
+
+  @@index([category])
+  @@index([isActive])
+  @@map("lead_sources")
+}
+
+// Model 11: Branch (Lookup Table for Normalized Branch Names)
+model Branch {
+  id             String   @id @default(uuid())
+  name           String   @unique
+  normalizedName String   @map("normalized_name")
+  city           String?
+  state          String?
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  jobs                Job[]
+  bookedOpportunities BookedOpportunity[]
+  leadStatus          LeadStatus[]
+
+  @@index([normalizedName])
+  @@index([city])
+  @@index([isActive])
+  @@map("branches")
+}

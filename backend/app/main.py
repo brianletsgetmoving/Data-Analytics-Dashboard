@@ -1,0 +1,57 @@
+"""FastAPI main application."""
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from .config import settings
+from .api.v1 import analytics, customers, jobs, revenue, leads, sales
+
+app = FastAPI(
+    title=settings.api_title,
+    version=settings.api_version,
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(analytics.router, prefix=f"{settings.api_prefix}/analytics", tags=["analytics"])
+app.include_router(customers.router, prefix=f"{settings.api_prefix}/customers", tags=["customers"])
+app.include_router(jobs.router, prefix=f"{settings.api_prefix}/jobs", tags=["jobs"])
+app.include_router(revenue.router, prefix=f"{settings.api_prefix}/revenue", tags=["revenue"])
+app.include_router(leads.router, prefix=f"{settings.api_prefix}/leads", tags=["leads"])
+app.include_router(sales.router, prefix=f"{settings.api_prefix}/sales", tags=["sales"])
+
+
+@app.get("/")
+async def root():
+    """Root endpoint."""
+    return {
+        "message": "Analytics Dashboard API",
+        "version": settings.api_version,
+        "docs": "/docs",
+    }
+
+
+@app.get("/health")
+async def health():
+    """Health check endpoint."""
+    return {"status": "healthy"}
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    """Global exception handler."""
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)},
+    )
+
