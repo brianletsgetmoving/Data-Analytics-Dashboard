@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from ...schemas.analytics import AnalyticsResponse
 from ...schemas.filters import UniversalFilter
 from ...database import db
-from ...utils.filters import build_where_clause
+from ...utils.filters import apply_filters_to_query
 from ...utils.sql_loader import load_sql_query
 from ...api.dependencies import get_filters
 
@@ -17,7 +17,8 @@ async def get_churn_prediction(
 ):
     """Get at-risk customers (churn prediction)."""
     query = load_sql_query("customer_churn_prediction", "customer_behavior")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,

@@ -11,10 +11,10 @@ select
     sum(coalesce(j.total_actual_cost, 0)) as total_actual,
     avg(coalesce(j.total_actual_cost, j.total_estimated_cost, 0)) as avg_job_value,
     percentile_cont(0.5) within group (order by coalesce(j.total_actual_cost, j.total_estimated_cost, 0)) as median_job_value,
-    round((total_actual - total_estimated)::numeric, 2) as variance_amount,
+    round((sum(coalesce(j.total_actual_cost, 0)) - sum(coalesce(j.total_estimated_cost, 0)))::numeric, 2) as variance_amount,
     case
-        when total_estimated > 0 then
-            round(((total_actual - total_estimated)::numeric / total_estimated * 100), 2)
+        when sum(coalesce(j.total_estimated_cost, 0)) > 0 then
+            round(((sum(coalesce(j.total_actual_cost, 0)) - sum(coalesce(j.total_estimated_cost, 0)))::numeric / sum(coalesce(j.total_estimated_cost, 0)) * 100), 2)
         else null
     end as variance_percent,
     sum(coalesce(j.actual_number_crew, 0)) as total_crew_hours,

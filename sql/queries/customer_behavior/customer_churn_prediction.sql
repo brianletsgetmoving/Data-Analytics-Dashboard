@@ -35,15 +35,15 @@ churn_analysis as (
         current_date - last_job_date as days_since_last_job,
         case
             when last_job_date is null then 'never_had_job'
-            when current_date - last_job_date <= 90 then 'active'
-            when current_date - last_job_date <= 180 then 'at_risk_3_months'
-            when current_date - last_job_date <= 365 then 'at_risk_6_months'
+            when extract(epoch from (current_date - last_job_date)) / 86400 <= 90 then 'active'
+            when extract(epoch from (current_date - last_job_date)) / 86400 <= 180 then 'at_risk_3_months'
+            when extract(epoch from (current_date - last_job_date)) / 86400 <= 365 then 'at_risk_6_months'
             else 'churned'
         end as churn_status,
         case
-            when last_job_date is not null and current_date - last_job_date > 365 then 'high_risk'
-            when last_job_date is not null and current_date - last_job_date > 180 then 'medium_risk'
-            when last_job_date is not null and current_date - last_job_date > 90 then 'low_risk'
+            when last_job_date is not null and extract(epoch from (current_date - last_job_date)) / 86400 > 365 then 'high_risk'
+            when last_job_date is not null and extract(epoch from (current_date - last_job_date)) / 86400 > 180 then 'medium_risk'
+            when last_job_date is not null and extract(epoch from (current_date - last_job_date)) / 86400 > 90 then 'low_risk'
             else 'no_risk'
         end as risk_level
     from

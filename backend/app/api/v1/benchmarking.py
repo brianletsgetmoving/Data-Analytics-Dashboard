@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from ...schemas.analytics import AnalyticsResponse
 from ...schemas.filters import UniversalFilter
 from ...database import db
-from ...utils.filters import build_where_clause
+from ...utils.filters import apply_filters_to_query
 from ...utils.sql_loader import load_sql_query
 from ...api.dependencies import get_filters
 
@@ -17,7 +17,8 @@ async def get_industry_benchmarks(
 ):
     """Get industry benchmarks."""
     query = load_sql_query("industry_benchmarks", "benchmarking")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -32,7 +33,8 @@ async def get_branch_benchmarking(
 ):
     """Get branch performance benchmarking."""
     query = load_sql_query("branch_performance_benchmarking", "benchmarking")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -47,7 +49,8 @@ async def get_sales_person_benchmarking(
 ):
     """Get sales person performance benchmarking."""
     query = load_sql_query("sales_person_benchmarking", "benchmarking")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -62,7 +65,8 @@ async def get_time_period_benchmarks(
 ):
     """Get time period comparisons."""
     query = load_sql_query("time_period_benchmarks", "benchmarking")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -77,7 +81,8 @@ async def get_market_share(
 ):
     """Get market share analysis."""
     query = load_sql_query("market_share_analysis", "benchmarking")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -92,7 +97,8 @@ async def get_competitive_metrics(
 ):
     """Get competitive metrics."""
     query = load_sql_query("competitive_metrics", "benchmarking")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
