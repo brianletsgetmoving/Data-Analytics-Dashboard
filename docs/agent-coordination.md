@@ -5,10 +5,10 @@ This document describes how multiple agents coordinate their work in the Data An
 ## Overview
 
 The project uses 4 specialized agents working in parallel:
-- **Agent 1**: Frontend Specialist
+- **Agent 1**: Frontend UI/UX Design Expert
 - **Agent 2**: Backend Specialist
 - **Agent 3**: Database/Scripts Specialist
-- **Agent 4**: UI/UX Design Specialist
+- **Agent 4**: Full-Stack Engineer
 
 ## Agent Identification
 
@@ -70,13 +70,11 @@ async def get_customers(...):
 -- Values: 'active', 'inactive', 'pending'
 ```
 
-**UI/UX requesting frontend implementation:**
+**Full-Stack Engineer coordinating end-to-end implementation:**
 ```typescript
-// TODO: [Agent 1] Implement data fetching for CustomerCard component
-// Design is complete, needs API integration
-export function CustomerCard() {
-  // Component structure ready, needs data
-}
+// TODO: [Agent 2] Add GET /api/v1/customers endpoint
+// TODO: [Agent 1] Create CustomerList component using the endpoint
+// TODO: [Agent 4] Test complete customer list flow end-to-end
 ```
 
 ## Coordination Workflow
@@ -135,51 +133,73 @@ export function CustomerCard() {
 -- Column added in migration 20240102_add_last_login.sql
 ```
 
-### Frontend ↔ UI/UX
-**Frontend to UI/UX:**
+### Full-Stack Engineer ↔ All Agents
+**Full-Stack Engineer coordinating end-to-end features:**
 ```typescript
-// TODO: [Agent 4] Design loading state for customer list
-// Current implementation uses basic spinner, needs better UX
+// TODO: [Agent 2] Add POST /api/v1/customers endpoint
+// TODO: [Agent 1] Create customer creation form component
+// TODO: [Agent 4] Test complete customer creation flow
+// TODO: [Agent 3] Add index on customers.email for performance
 ```
 
-**UI/UX to Frontend:**
+**Full-Stack Engineer requesting integration testing:**
 ```typescript
-// TODO: [Agent 1] Implement data fetching for CustomerCard
-// Component structure and styling complete, needs API integration
+// TODO: [Agent 4] Test customer list flow end-to-end
+// - Frontend: CustomerList component
+// - Backend: GET /api/v1/customers endpoint
+// - Database: Verify query performance
 ```
 
-## Task Splitting: Frontend and UI/UX
+**Full-Stack Engineer optimizing across stack:**
+```python
+# TODO: [Agent 4] Optimize customer query performance
+# - Database: Add index on customers.created_at
+# - Backend: Optimize query to use index
+# - Frontend: Implement pagination for large result sets
+```
 
-Agents 1 (Frontend) and 4 (UI/UX) can split tasks between each other:
+## Full-Stack Engineer Role
 
-**UI/UX handles:**
-- Visual design and styling
-- Component structure and layout
-- Design system consistency
-- User experience patterns
-- Accessibility implementation
+Agent 4 (Full-Stack Engineer) has a unique position in the system:
 
-**Frontend handles:**
-- Data fetching and API integration
-- Business logic and state management
-- Route handling and navigation
-- Performance optimization
-- Error handling for API calls
+**Responsibilities:**
+- End-to-end feature implementation spanning all layers
+- Integration and E2E testing across the stack
+- System architecture understanding and documentation
+- Performance optimization across frontend/backend/database
+- Deployment coordination and DevOps considerations
 
-**Coordination example:**
+**Coordination Patterns:**
+- Can coordinate with all agents (1, 2, 3, 4)
+- Orchestrates complex features requiring multiple agents
+- Tests complete flows from UI to database
+- Optimizes performance holistically across layers
+- Documents system architecture and integration points
+
+**Example End-to-End Implementation:**
 ```typescript
-// UI/UX creates the component structure
-export function CustomerList() {
-  // TODO: [Agent 1] Add data fetching using useQuery
-  // TODO: [Agent 1] Add error handling for API failures
-  // TODO: [Agent 1] Add loading state management
-  
-  return (
-    <div className="grid gap-4">
-      {/* Component structure ready */}
-    </div>
-  );
-}
+// Frontend: app/customers/page.tsx
+// TODO: [Agent 2] Implement GET /api/v1/customers endpoint
+// TODO: [Agent 4] Test complete customer list flow
+const { data } = useQuery({
+  queryKey: ["customers"],
+  queryFn: () => customersAPI.list(),
+});
+```
+
+```python
+# Backend: app/api/v1/customers.py
+# TODO: [Agent 3] Add index on customers.email
+# TODO: [Agent 4] Test API performance with new index
+@router.get("/customers", response_model=AnalyticsResponse)
+async def get_customers(...):
+    # Implementation
+```
+
+```sql
+-- Database: sql/queries/customers.sql
+-- TODO: [Agent 4] Test query performance end-to-end
+CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
 ```
 
 ## Conflict Prevention
@@ -197,6 +217,7 @@ export function CustomerList() {
 ### API Contract Coordination
 - Backend defines API contracts first
 - Frontend implements against contracts
+- Full-Stack Engineer tests and validates contracts
 - Changes to contracts require coordination via TODOs
 
 ## Best Practices
@@ -220,6 +241,13 @@ export function CustomerList() {
 # TODO: [Agent 1] Create CustomerDetailPage component
 # Endpoint ready: GET /api/v1/customers/{id}
 # Should display: name, email, phone, job history
+```
+
+```typescript
+// ✅ Good: Full-Stack Engineer coordinating end-to-end
+// TODO: [Agent 2] Add GET /api/v1/customers/{id}/jobs endpoint
+// TODO: [Agent 1] Display job history in CustomerDetailPage
+// TODO: [Agent 4] Test complete customer detail flow
 ```
 
 ### Bad TODO Examples

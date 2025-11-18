@@ -2,9 +2,9 @@
   "agents": [
     {
       "agent_id": 1,
-      "role": "frontend",
-      "name": "Frontend Specialist",
-      "rules_file": ".cursorrules-frontend.md",
+      "role": "frontend_uiux",
+      "name": "Frontend UI/UX Design Expert",
+      "rules_file": ".cursorrules-frontend-uiux.md",
       "allowed_directories": [
         "frontend/"
       ],
@@ -15,8 +15,8 @@
         "sql/"
       ],
       "coordination_method": "code_comments_todos",
-      "can_coordinate_with": [4],
-      "description": "Handles Next.js/React/TypeScript frontend development, UI components, data visualization, and client-side logic"
+      "can_coordinate_with": [2],
+      "description": "Handles all frontend development including UI components, UX design, data visualization, client-side logic, design system, and visual design"
     },
     {
       "agent_id": 2,
@@ -33,7 +33,7 @@
         "sql/"
       ],
       "coordination_method": "code_comments_todos",
-      "can_coordinate_with": [1, 3],
+      "can_coordinate_with": [1, 3, 4],
       "description": "Handles FastAPI/Python backend development, API endpoints, database queries, and business logic"
     },
     {
@@ -51,27 +51,25 @@
         "backend/"
       ],
       "coordination_method": "code_comments_todos",
-      "can_coordinate_with": [2],
+      "can_coordinate_with": [2, 4],
       "description": "Handles database schema, migrations, SQL queries, and data processing scripts"
     },
     {
       "agent_id": 4,
-      "role": "uiux_design",
-      "name": "UI/UX Design Specialist",
-      "rules_file": ".cursorrules-uiux.md",
+      "role": "fullstack_engineer",
+      "name": "Full-Stack Engineer",
+      "rules_file": ".cursorrules-fullstack.md",
       "allowed_directories": [
-        "frontend/components/",
-        "frontend/app/"
-      ],
-      "forbidden_directories": [
+        "frontend/",
         "backend/",
         "scripts/",
         "prisma/",
         "sql/"
       ],
+      "forbidden_directories": [],
       "coordination_method": "code_comments_todos",
-      "can_coordinate_with": [1],
-      "description": "Handles UI components, design system, user experience, and visual design. Can split tasks with Frontend agent."
+      "can_coordinate_with": [1, 2, 3, 4],
+      "description": "Specializes in end-to-end feature implementation, integration testing, system architecture understanding, performance optimization across the stack, and deployment considerations. Understands the entire project pipeline from frontend to backend to database."
     }
   ],
   "coordination": {

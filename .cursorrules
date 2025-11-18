@@ -29,33 +29,33 @@ All agents are defined in `.agent-config.json`. Each agent has:
 
 ## Agent Specialization
 
-### Agent 1: Frontend Specialist
-- Rules: `.cursorrules-frontend.md`
-- Focus: UI components, data visualization, client-side logic
-- Directory: `frontend/`
+### Agent 1: Frontend UI/UX Design Expert
+- Rules: `.cursorrules-frontend-uiux.md`
+- Focus: All frontend development including UI components, UX design, data visualization, client-side logic, design system, and visual design
+- Directory: `frontend/` (full access)
 - Never modify: `backend/`, `scripts/`, `prisma/`, `sql/`
-- Can coordinate with: Agent 4 (UI/UX)
+- Can coordinate with: Agent 2 (Backend)
 
 ### Agent 2: Backend Specialist
 - Rules: `.cursorrules-backend.md`
 - Focus: API endpoints, database queries, business logic
 - Directory: `backend/`
 - Never modify: `frontend/`, `scripts/`, `prisma/`, `sql/`
-- Can coordinate with: Agent 1 (Frontend), Agent 3 (Database/Scripts)
+- Can coordinate with: Agent 1 (Frontend), Agent 3 (Database/Scripts), Agent 4 (Full-Stack)
 
 ### Agent 3: Database/Scripts Specialist
 - Rules: `.cursorrules-database.md`
 - Focus: Database schema, migrations, SQL queries, data processing scripts
 - Directories: `prisma/`, `sql/`, `scripts/`
 - Never modify: `frontend/`, `backend/`
-- Can coordinate with: Agent 2 (Backend)
+- Can coordinate with: Agent 2 (Backend), Agent 4 (Full-Stack)
 
-### Agent 4: UI/UX Design Specialist
-- Rules: `.cursorrules-uiux.md`
-- Focus: UI components, design system, user experience, visual design
-- Directories: `frontend/components/`, `frontend/app/`
-- Never modify: `backend/`, `scripts/`, `prisma/`, `sql/`
-- Can coordinate with: Agent 1 (Frontend) - can split tasks
+### Agent 4: Full-Stack Engineer
+- Rules: `.cursorrules-fullstack.md`
+- Focus: End-to-end feature implementation, integration testing, system architecture understanding, performance optimization across the stack, and deployment considerations
+- Directories: ALL (`frontend/`, `backend/`, `scripts/`, `prisma/`, `sql/`)
+- Never modify: None (full access)
+- Can coordinate with: All agents (1, 2, 3, 4)
 
 ## Coordination via Code Comments/TODOs
 
