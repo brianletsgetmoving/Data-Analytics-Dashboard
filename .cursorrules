@@ -1,0 +1,46 @@
+# Global Cursor Rules for Data Analytics V5
+
+This workspace contains a full-stack analytics application with separate frontend and backend codebases.
+
+## Project Structure
+
+- **Frontend**: Next.js 16 + React 19 + TypeScript in `frontend/`
+- **Backend**: FastAPI + Python in `backend/`
+- **Database**: PostgreSQL 16 (Prisma schema in `prisma/`)
+- **Scripts**: Data processing scripts in `scripts/`
+
+## Multi-Agent Workflow
+
+When using multiple agents:
+
+1. **Frontend Agents** should reference `.cursorrules-frontend.md`
+2. **Backend Agents** should reference `.cursorrules-backend.md`
+3. **Each agent should stay in their domain** - no cross-boundary modifications
+
+## Agent Specialization
+
+### Frontend Agents
+- Focus: UI components, data visualization, client-side logic
+- Directory: `frontend/`
+- Never modify: `backend/`, `scripts/`, `prisma/`, `sql/`
+
+### Backend Agents
+- Focus: API endpoints, database queries, business logic
+- Directory: `backend/`
+- Never modify: `frontend/`, `scripts/`, `prisma/`, `sql/`
+
+## Coordination
+
+If agents need to coordinate:
+- Use code comments: `// TODO: Backend needs to add /api/endpoint`
+- Document API changes in commit messages
+- Update API documentation when endpoints change
+
+## General Rules
+
+- Follow existing code patterns
+- Maintain type safety (TypeScript strict, Python type hints)
+- Handle errors gracefully
+- Write testable code
+- Document complex logic
+
