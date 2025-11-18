@@ -1,5 +1,7 @@
 """Customer analytics endpoints."""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Path
+from typing import Optional
+from pydantic import BaseModel, EmailStr
 
 from ...schemas.analytics import AnalyticsResponse
 from ...schemas.filters import UniversalFilter
@@ -8,6 +10,23 @@ from ...utils.filters import build_where_clause
 from ...api.dependencies import get_filters
 
 router = APIRouter()
+
+
+class CustomerCreate(BaseModel):
+    """Schema for creating a new customer."""
+    name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    origin_city: Optional[str] = None
+    origin_state: Optional[str] = None
+    origin_zip: Optional[str] = None
+    origin_address: Optional[str] = None
+    destination_city: Optional[str] = None
+    destination_state: Optional[str] = None
+    destination_zip: Optional[str] = None
+    destination_address: Optional[str] = None
 
 
 @router.get("/demographics", response_model=AnalyticsResponse)
