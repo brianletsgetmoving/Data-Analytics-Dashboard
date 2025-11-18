@@ -23,31 +23,38 @@ class Database:
         """Initialize connection pool."""
         db_url = settings.database_url
         
-        # Parse connection string
-        if db_url.startswith("postgresql://"):
-            db_url = db_url.replace("postgresql://", "")
-            parts = db_url.split("@")
-            if len(parts) == 2:
-                user = parts[0].split(":")[0] if ":" in parts[0] else parts[0]
-                host_port_db = parts[1].split("/")
-                host_port = host_port_db[0].split(":")
-                host = host_port[0]
-                port = int(host_port[1]) if len(host_port) > 1 else 5432
-                database = host_port_db[1].split("?")[0] if len(host_port_db) > 1 else "data_analytics"
+        # Use psycopg2's connection string parsing if available, otherwise parse manually
+        try:
+            # Try using psycopg2's parse_dsn for proper parsing
+            from urllib.parse import urlparse, unquote
+            
+            if db_url.startswith("postgresql://") or db_url.startswith("postgres://"):
+                parsed = urlparse(db_url)
+                host = parsed.hostname or "localhost"
+                port = parsed.port or 5432
+                database = parsed.path.lstrip("/").split("?")[0] or "data_analytics"
+                user = unquote(parsed.username) if parsed.username else "buyer"
+                password = unquote(parsed.password) if parsed.password else None
             else:
-                host, port, database, user = "localhost", 5432, "data_analytics", "buyer"
-        else:
-            host, port, database, user = "localhost", 5432, "data_analytics", "buyer"
+                # Fallback to manual parsing
+                host, port, database, user, password = "localhost", 5432, "data_analytics", "buyer", None
+        except Exception as e:
+            logger.warning(f"Error parsing database URL, using defaults: {e}")
+            host, port, database, user, password = "localhost", 5432, "data_analytics", "buyer", None
         
         try:
-            self.pool = pool.ThreadedConnectionPool(
-                minconn=2,
-                maxconn=10,
-                host=host,
-                port=port,
-                database=database,
-                user=user
-            )
+            pool_kwargs = {
+                "minconn": 2,
+                "maxconn": 10,
+                "host": host,
+                "port": port,
+                "database": database,
+                "user": user,
+            }
+            if password:
+                pool_kwargs["password"] = password
+            
+            self.pool = pool.ThreadedConnectionPool(**pool_kwargs)
             logger.info("Database connection pool initialized")
         except Exception as e:
             logger.error(f"Failed to initialize connection pool: {e}")
@@ -77,6 +84,14 @@ class Database:
                 else:
                     conn.commit()
                     return {"affected_rows": cursor.rowcount}
+            except psycopg2.Error as e:
+                logger.error(f"Database error executing query: {e}")
+                conn.rollback()
+                raise
+            except Exception as e:
+                logger.error(f"Unexpected error executing query: {e}")
+                conn.rollback()
+                raise
             finally:
                 cursor.close()
     

@@ -67,8 +67,15 @@ async def health():
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Global exception handler."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Log the full error for debugging
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    
+    # Don't expose internal error details to clients
     return JSONResponse(
         status_code=500,
-        content={"detail": str(exc)},
+        content={"detail": "An internal server error occurred"},
     )
 

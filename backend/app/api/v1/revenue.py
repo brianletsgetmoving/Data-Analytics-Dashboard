@@ -15,19 +15,21 @@ async def get_revenue_trends(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get revenue trends over time."""
-    where_clause, params = build_where_clause(filters)
+    where_clause, params = build_where_clause(filters, table_alias="j")
     period_sql = get_aggregation_period_sql(filters.aggregation_period or "monthly")
+    # Update period_sql to use table alias
+    period_sql = period_sql.replace("job_date", "j.job_date")
     
     query = f"""
         SELECT 
             {period_sql} as period,
             COUNT(*) as job_count,
-            SUM(COALESCE(total_actual_cost, total_estimated_cost, 0)) as revenue,
-            SUM(COALESCE(total_actual_cost, total_estimated_cost, 0)) FILTER (WHERE opportunity_status = 'BOOKED') as booked_revenue,
-            SUM(COALESCE(total_actual_cost, total_estimated_cost, 0)) FILTER (WHERE opportunity_status = 'CLOSED') as closed_revenue
+            SUM(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) as revenue,
+            SUM(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) FILTER (WHERE j.opportunity_status = 'BOOKED') as booked_revenue,
+            SUM(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) FILTER (WHERE j.opportunity_status = 'CLOSED') as closed_revenue
         FROM jobs j
         WHERE {where_clause}
-        AND job_date IS NOT NULL
+        AND j.job_date IS NOT NULL
         GROUP BY {period_sql}
         ORDER BY {period_sql} DESC
         LIMIT 24
@@ -47,19 +49,19 @@ async def get_revenue_by_branch(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get revenue by branch."""
-    where_clause, params = build_where_clause(filters)
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         SELECT 
-            branch_name,
+            j.branch_name,
             COUNT(*) as job_count,
-            SUM(COALESCE(total_actual_cost, total_estimated_cost, 0)) as total_revenue,
-            AVG(COALESCE(total_actual_cost, total_estimated_cost, 0)) as avg_job_value
+            SUM(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) as total_revenue,
+            AVG(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) as avg_job_value
         FROM jobs j
         WHERE {where_clause}
-        AND opportunity_status IN ('BOOKED', 'CLOSED')
-        AND branch_name IS NOT NULL
-        GROUP BY branch_name
+        AND j.opportunity_status IN ('BOOKED', 'CLOSED')
+        AND j.branch_name IS NOT NULL
+        GROUP BY j.branch_name
         ORDER BY total_revenue DESC
     """
     
@@ -77,19 +79,19 @@ async def get_revenue_by_region(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get revenue by geographic region."""
-    where_clause, params = build_where_clause(filters)
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         SELECT 
-            origin_state as state,
-            origin_city as city,
+            j.origin_state as state,
+            j.origin_city as city,
             COUNT(*) as job_count,
-            SUM(COALESCE(total_actual_cost, total_estimated_cost, 0)) as total_revenue
+            SUM(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) as total_revenue
         FROM jobs j
         WHERE {where_clause}
-        AND opportunity_status IN ('BOOKED', 'CLOSED')
-        AND origin_state IS NOT NULL
-        GROUP BY origin_state, origin_city
+        AND j.opportunity_status IN ('BOOKED', 'CLOSED')
+        AND j.origin_state IS NOT NULL
+        GROUP BY j.origin_state, j.origin_city
         ORDER BY total_revenue DESC
         LIMIT 50
     """
@@ -108,19 +110,19 @@ async def get_revenue_by_source(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get revenue by referral source."""
-    where_clause, params = build_where_clause(filters)
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         SELECT 
-            referral_source,
+            j.referral_source,
             COUNT(*) as job_count,
-            SUM(COALESCE(total_actual_cost, total_estimated_cost, 0)) as total_revenue,
-            AVG(COALESCE(total_actual_cost, total_estimated_cost, 0)) as avg_job_value
+            SUM(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) as total_revenue,
+            AVG(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) as avg_job_value
         FROM jobs j
         WHERE {where_clause}
-        AND opportunity_status IN ('BOOKED', 'CLOSED')
-        AND referral_source IS NOT NULL
-        GROUP BY referral_source
+        AND j.opportunity_status IN ('BOOKED', 'CLOSED')
+        AND j.referral_source IS NOT NULL
+        GROUP BY j.referral_source
         ORDER BY total_revenue DESC
         LIMIT 30
     """
@@ -139,19 +141,19 @@ async def get_revenue_forecasts(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get revenue forecasts based on historical trends."""
-    where_clause, params = build_where_clause(filters)
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     # Simple moving average forecast
     query = f"""
         WITH monthly_revenue AS (
             SELECT 
-                DATE_TRUNC('month', job_date) as month,
-                SUM(COALESCE(total_actual_cost, total_estimated_cost, 0)) as revenue
+                DATE_TRUNC('month', j.job_date) as month,
+                SUM(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) as revenue
             FROM jobs j
             WHERE {where_clause}
-            AND job_date IS NOT NULL
-            AND opportunity_status IN ('BOOKED', 'CLOSED')
-            GROUP BY DATE_TRUNC('month', job_date)
+            AND j.job_date IS NOT NULL
+            AND j.opportunity_status IN ('BOOKED', 'CLOSED')
+            GROUP BY DATE_TRUNC('month', j.job_date)
             ORDER BY month DESC
             LIMIT 12
         )
@@ -178,7 +180,8 @@ async def get_revenue_by_segment(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get revenue by customer value segment."""
-    where_clause, params = build_where_clause(filters)
+    # Build where clause with job table alias since filters apply to jobs
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         WITH customer_segments AS (
@@ -195,7 +198,7 @@ async def get_revenue_by_segment(
                 END as segment
             FROM customers c
             LEFT JOIN jobs j ON c.id = j.customer_id
-            WHERE {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}
+            WHERE {where_clause}
             AND j.opportunity_status IN ('BOOKED', 'CLOSED')
             GROUP BY c.id
         )

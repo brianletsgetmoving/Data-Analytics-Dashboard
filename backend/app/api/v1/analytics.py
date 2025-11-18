@@ -15,8 +15,8 @@ async def get_overview(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get overview analytics."""
-    # Build base query
-    where_clause, params = build_where_clause(filters)
+    # Build base query with table alias for jobs table
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     # Get KPIs
     kpis_query = f"""
@@ -67,7 +67,7 @@ async def get_kpis(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get detailed KPI metrics."""
-    where_clause, params = build_where_clause(filters)
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         SELECT 
@@ -99,8 +99,10 @@ async def get_trends(
     """Get trend data."""
     from ...utils.filters import get_aggregation_period_sql
     
-    where_clause, params = build_where_clause(filters)
+    where_clause, params = build_where_clause(filters, table_alias="j")
     period_sql = get_aggregation_period_sql(filters.aggregation_period or "monthly")
+    # Update period_sql to use table alias
+    period_sql = period_sql.replace("job_date", "j.job_date")
     
     query = f"""
         SELECT 
