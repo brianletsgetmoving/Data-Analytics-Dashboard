@@ -29,6 +29,108 @@ class CustomerCreate(BaseModel):
     destination_address: Optional[str] = None
 
 
+@router.get("", response_model=AnalyticsResponse)
+async def get_customers(
+    filters: UniversalFilter = Depends(get_filters),
+):
+    """Get list of customers with optional filtering."""
+    # Build where clause - filters can apply to customers directly or via jobs
+    where_clause, params = build_where_clause(filters, table_alias="c")
+    
+    # If filters include job-related filters, we need to join with jobs
+    has_job_filters = any([
+        filters.job_status,
+        filters.date_from,
+        filters.date_to,
+    ])
+    
+    if has_job_filters:
+        # Join with jobs table when job filters are present
+        where_clause_job, params_job = build_where_clause(filters, table_alias="j")
+        query = f"""
+            SELECT DISTINCT
+                c.id,
+                c.name,
+                c.first_name,
+                c.last_name,
+                c.email,
+                c.phone,
+                c.origin_city,
+                c.origin_state,
+                c.destination_city,
+                c.destination_state,
+                c.gender,
+                c.created_at,
+                c.updated_at
+            FROM customers c
+            LEFT JOIN jobs j ON c.id = j.customer_id
+            WHERE {where_clause_job}
+            ORDER BY c.name
+            LIMIT %s OFFSET %s
+        """
+        limit = filters.limit or 100
+        offset = filters.offset or 0
+        all_params = list(params_job) + [limit, offset]
+    else:
+        # Simple customer query without job join
+        query = f"""
+            SELECT 
+                c.id,
+                c.name,
+                c.first_name,
+                c.last_name,
+                c.email,
+                c.phone,
+                c.origin_city,
+                c.origin_state,
+                c.destination_city,
+                c.destination_state,
+                c.gender,
+                c.created_at,
+                c.updated_at
+            FROM customers c
+            WHERE {where_clause}
+            ORDER BY c.name
+            LIMIT %s OFFSET %s
+        """
+        limit = filters.limit or 100
+        offset = filters.offset or 0
+        all_params = list(params) + [limit, offset]
+    
+    results = db.execute_query(query, tuple(all_params))
+    
+    # Get total count for metadata
+    if has_job_filters:
+        count_query = f"""
+            SELECT COUNT(DISTINCT c.id)
+            FROM customers c
+            LEFT JOIN jobs j ON c.id = j.customer_id
+            WHERE {where_clause_job}
+        """
+        count_params = params_job
+    else:
+        count_query = f"""
+            SELECT COUNT(*)
+            FROM customers c
+            WHERE {where_clause}
+        """
+        count_params = params
+    
+    count_result = db.execute_query(count_query, tuple(count_params))
+    total_count = count_result[0]['count'] if count_result else len(results)
+    
+    return AnalyticsResponse(
+        data=results,
+        metadata={
+            "count": len(results),
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+        },
+        filters_applied=filters,
+    )
+
+
 @router.get("/demographics", response_model=AnalyticsResponse)
 async def get_customer_demographics(
     filters: UniversalFilter = Depends(get_filters),
@@ -144,6 +246,15 @@ async def get_gender_breakdown(
         metadata={"count": len(results)},
         filters_applied=filters,
     )
+
+
+@router.get("/gender", response_model=AnalyticsResponse)
+async def get_gender(
+    filters: UniversalFilter = Depends(get_filters),
+):
+    """Get customer gender breakdown (alias for /gender-breakdown)."""
+    # Reuse the same logic as gender-breakdown
+    return await get_gender_breakdown(filters)
 
 
 @router.get("/lifetime-value", response_model=AnalyticsResponse)
@@ -262,4 +373,155 @@ async def get_geographic_distribution(
         metadata={"count": len(results)},
         filters_applied=filters,
     )
+
+
+@router.get("/{customer_id}/jobs", response_model=AnalyticsResponse)
+async def get_customer_jobs(
+    customer_id: str = Path(..., description="Customer ID"),
+    filters: UniversalFilter = Depends(get_filters),
+):
+    """Get jobs for a specific customer."""
+    # First verify customer exists
+    customer_check = db.execute_query(
+        "SELECT id, name FROM customers WHERE id = %s",
+        (customer_id,)
+    )
+    
+    if not customer_check:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    # Build where clause for jobs, but always include customer_id filter
+    where_clause, params = build_where_clause(filters, table_alias="j")
+    
+    # Add customer_id to where clause
+    if where_clause:
+        where_clause = f"j.customer_id = %s AND {where_clause}"
+        all_params = [customer_id] + list(params)
+    else:
+        where_clause = "j.customer_id = %s"
+        all_params = [customer_id]
+    
+    query = f"""
+        SELECT 
+            j.id,
+            j.job_id,
+            j.job_number,
+            j.opportunity_status,
+            j.job_date,
+            j.job_type,
+            j.sales_person_name,
+            j.branch_name,
+            j.total_estimated_cost,
+            j.total_actual_cost,
+            j.created_at_utc,
+            j.booked_at_utc
+        FROM jobs j
+        WHERE {where_clause}
+        ORDER BY j.job_date DESC NULLS LAST, j.created_at_utc DESC NULLS LAST
+        LIMIT %s OFFSET %s
+    """
+    
+    limit = filters.limit or 100
+    offset = filters.offset or 0
+    all_params = all_params + [limit, offset]
+    
+    results = db.execute_query(query, tuple(all_params))
+    
+    # Get total count
+    count_query = f"""
+        SELECT COUNT(*)
+        FROM jobs j
+        WHERE {where_clause.replace('LIMIT %s OFFSET %s', '')}
+    """
+    count_result = db.execute_query(count_query, tuple(all_params[:-2]))
+    total_count = count_result[0]['count'] if count_result else len(results)
+    
+    return AnalyticsResponse(
+        data=results,
+        metadata={
+            "count": len(results),
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+            "customer_id": customer_id,
+            "customer_name": customer_check[0]['name'],
+        },
+        filters_applied=filters,
+    )
+
+
+@router.post("", response_model=AnalyticsResponse)
+async def create_customer(
+    customer: CustomerCreate,
+):
+    """Create a new customer."""
+    # Check for duplicate email if provided
+    if customer.email:
+        existing = db.execute_query(
+            "SELECT id FROM customers WHERE email = %s",
+            (customer.email,)
+        )
+        if existing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Customer with email {customer.email} already exists"
+            )
+    
+    # Check for duplicate phone if provided
+    if customer.phone:
+        existing = db.execute_query(
+            "SELECT id FROM customers WHERE phone = %s",
+            (customer.phone,)
+        )
+        if existing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Customer with phone {customer.phone} already exists"
+            )
+    
+    # Insert new customer
+    insert_query = """
+        INSERT INTO customers (
+            name, first_name, last_name, email, phone,
+            origin_city, origin_state, origin_zip, origin_address,
+            destination_city, destination_state, destination_zip, destination_address
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id, name, first_name, last_name, email, phone,
+                  origin_city, origin_state, destination_city, destination_state,
+                  created_at, updated_at
+    """
+    
+    params = (
+        customer.name,
+        customer.first_name,
+        customer.last_name,
+        customer.email,
+        customer.phone,
+        customer.origin_city,
+        customer.origin_state,
+        customer.origin_zip,
+        customer.origin_address,
+        customer.destination_city,
+        customer.destination_state,
+        customer.destination_zip,
+        customer.destination_address,
+    )
+    
+    try:
+        result = db.execute_query(insert_query, params)
+        if result:
+            created_customer = result[0]
+            return AnalyticsResponse(
+                data=created_customer,
+                metadata={"created": True},
+                filters_applied=UniversalFilter(),
+            )
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create customer")
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error creating customer: {str(e)}"
+        )
 
