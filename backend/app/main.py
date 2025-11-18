@@ -16,6 +16,7 @@ from .api.v1 import (
     operational,
     benchmarking,
     forecasting,
+    filter_options,
 )
 
 app = FastAPI(
@@ -46,6 +47,7 @@ app.include_router(customer_behavior.router, prefix=f"{settings.api_prefix}/cust
 app.include_router(operational.router, prefix=f"{settings.api_prefix}/operational", tags=["operational"])
 app.include_router(benchmarking.router, prefix=f"{settings.api_prefix}/benchmarking", tags=["benchmarking"])
 app.include_router(forecasting.router, prefix=f"{settings.api_prefix}/forecasting", tags=["forecasting"])
+app.include_router(filter_options.router, prefix=f"{settings.api_prefix}/filter-options", tags=["filter-options"])
 
 
 @app.get("/")
