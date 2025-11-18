@@ -1,6 +1,6 @@
 """Customer analytics endpoints."""
 from fastapi import APIRouter, Depends, HTTPException, Path
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, EmailStr
 
 from ...schemas.analytics import AnalyticsResponse
@@ -121,7 +121,11 @@ async def get_customers(
         count_params = params
     
     count_result = db.execute_query(count_query, tuple(count_params))
-    total_count = count_result[0].get('count', len(results)) if count_result else len(results)
+    if isinstance(count_result, list) and len(count_result) > 0:
+        first_result: Dict[str, Any] = count_result[0]
+        total_count = first_result.get('count', len(results))
+    else:
+        total_count = len(results)
     
     return AnalyticsResponse(
         data=results,
@@ -391,10 +395,11 @@ async def get_customer_jobs(
         (customer_id,)
     )
     
-    if not customer_check:
+    if not customer_check or not isinstance(customer_check, list) or len(customer_check) == 0:
         raise HTTPException(status_code=404, detail="Customer not found")
     
-    customer_name = customer_check[0].get('name', 'Unknown')
+    first_customer: Dict[str, Any] = customer_check[0]
+    customer_name = first_customer.get('name', 'Unknown')
     
     # Build where clause for jobs, but always include customer_id filter
     where_clause, params = build_where_clause(filters, table_alias="j")
@@ -442,7 +447,11 @@ async def get_customer_jobs(
     """
     count_params = all_params[:-2]  # Remove limit and offset
     count_result = db.execute_query(count_query, tuple(count_params))
-    total_count = count_result[0].get('count', len(results)) if count_result else len(results)
+    if isinstance(count_result, list) and len(count_result) > 0:
+        first_result: Dict[str, Any] = count_result[0]
+        total_count = first_result.get('count', len(results))
+    else:
+        total_count = len(results)
     
     return AnalyticsResponse(
         data=results,
@@ -518,8 +527,8 @@ async def create_customer(
     
     try:
         result = db.execute_query(insert_query, params)
-        if result:
-            created_customer = result[0]
+        if isinstance(result, list) and len(result) > 0:
+            created_customer: Dict[str, Any] = result[0]
             return AnalyticsResponse(
                 data=created_customer,
                 metadata={"created": True},
