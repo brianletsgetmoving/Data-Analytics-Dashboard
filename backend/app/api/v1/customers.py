@@ -44,6 +44,10 @@ async def get_customers(
         filters.date_to,
     ])
     
+    # Initialize variables for type safety
+    where_clause_job = ""
+    params_job: list = []
+    
     if has_job_filters:
         # Join with jobs table when job filters are present
         where_clause_job, params_job = build_where_clause(filters, table_alias="j")
@@ -102,7 +106,7 @@ async def get_customers(
     # Get total count for metadata
     if has_job_filters:
         count_query = f"""
-            SELECT COUNT(DISTINCT c.id)
+            SELECT COUNT(DISTINCT c.id) as count
             FROM customers c
             LEFT JOIN jobs j ON c.id = j.customer_id
             WHERE {where_clause_job}
@@ -110,14 +114,14 @@ async def get_customers(
         count_params = params_job
     else:
         count_query = f"""
-            SELECT COUNT(*)
+            SELECT COUNT(*) as count
             FROM customers c
             WHERE {where_clause}
         """
         count_params = params
     
     count_result = db.execute_query(count_query, tuple(count_params))
-    total_count = count_result[0]['count'] if count_result else len(results)
+    total_count = count_result[0].get('count', len(results)) if count_result else len(results)
     
     return AnalyticsResponse(
         data=results,
@@ -390,6 +394,8 @@ async def get_customer_jobs(
     if not customer_check:
         raise HTTPException(status_code=404, detail="Customer not found")
     
+    customer_name = customer_check[0].get('name', 'Unknown')
+    
     # Build where clause for jobs, but always include customer_id filter
     where_clause, params = build_where_clause(filters, table_alias="j")
     
@@ -427,14 +433,16 @@ async def get_customer_jobs(
     
     results = db.execute_query(query, tuple(all_params))
     
-    # Get total count
+    # Get total count - need to build where clause without limit/offset
+    count_where = where_clause.replace('LIMIT %s OFFSET %s', '')
     count_query = f"""
-        SELECT COUNT(*)
+        SELECT COUNT(*) as count
         FROM jobs j
-        WHERE {where_clause.replace('LIMIT %s OFFSET %s', '')}
+        WHERE {count_where}
     """
-    count_result = db.execute_query(count_query, tuple(all_params[:-2]))
-    total_count = count_result[0]['count'] if count_result else len(results)
+    count_params = all_params[:-2]  # Remove limit and offset
+    count_result = db.execute_query(count_query, tuple(count_params))
+    total_count = count_result[0].get('count', len(results)) if count_result else len(results)
     
     return AnalyticsResponse(
         data=results,
@@ -444,7 +452,7 @@ async def get_customer_jobs(
             "limit": limit,
             "offset": offset,
             "customer_id": customer_id,
-            "customer_name": customer_check[0]['name'],
+            "customer_name": customer_name,
         },
         filters_applied=filters,
     )
