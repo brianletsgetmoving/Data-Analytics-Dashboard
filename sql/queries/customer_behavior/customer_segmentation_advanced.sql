@@ -77,7 +77,7 @@ rfm_segments as (
         recency_score,
         frequency_score,
         monetary_score,
-        recency_score || frequency_score || monetary_score as rfm_cell,
+        recency_score::text || frequency_score::text || monetary_score::text as rfm_cell,
         case
             when recency_score >= 4 and frequency_score >= 4 and monetary_score >= 4 then 'champions'
             when recency_score >= 3 and frequency_score >= 3 and monetary_score >= 4 then 'loyal_customers'
