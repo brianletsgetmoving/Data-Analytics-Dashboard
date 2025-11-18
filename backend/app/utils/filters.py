@@ -80,50 +80,95 @@ def apply_filters_to_query(query: str, filters: UniversalFilter, table_alias: Op
         Tuple of (modified_query, params_tuple)
     """
     # Detect table alias from query if not provided
-    if table_alias is None:
-        if "WHERE j.is_duplicate" in query or "where j.is_duplicate" in query:
-            table_alias = "j"
-        elif "WHERE jobs.is_duplicate" in query or "where jobs.is_duplicate" in query:
-            table_alias = "jobs"
+    detected_alias = table_alias
+    if detected_alias is None:
+        # Look for common patterns: "jobs j", "jobs as j", "FROM jobs j", etc.
+        import re
+        # Pattern: FROM jobs j or FROM jobs AS j or JOIN jobs j
+        from_match = re.search(r'(?:FROM|JOIN)\s+jobs\s+(?:AS\s+)?(\w+)', query, re.IGNORECASE)
+        if from_match:
+            detected_alias = from_match.group(1)
+        # Check for j.is_duplicate or jobs.is_duplicate patterns
+        elif "j.is_duplicate" in query or " j." in query:
+            detected_alias = "j"
+        elif "jobs.is_duplicate" in query:
+            detected_alias = "jobs"
+        # Check for WHERE clause patterns
+        elif "WHERE j." in query or "where j." in query:
+            detected_alias = "j"
+        elif "WHERE jobs." in query or "where jobs." in query:
+            detected_alias = "jobs"
         else:
-            table_alias = ""
+            # Default: no alias (table name used directly)
+            detected_alias = None
     
     # Build where clause with detected or provided table alias
-    where_clause, params = build_where_clause(filters, table_alias=table_alias if table_alias else None)
+    where_clause, params = build_where_clause(filters, table_alias=detected_alias)
     
     # If no filters, return query as-is
     if where_clause == "1=1":
         return query, tuple()
     
     # Apply filters to query
-    # Try to find WHERE clause with is_duplicate check
-    if table_alias and (f"WHERE {table_alias}.is_duplicate = false" in query or f"where {table_alias}.is_duplicate = false" in query):
-        query = query.replace(
-            f"WHERE {table_alias}.is_duplicate = false",
-            f"WHERE {table_alias}.is_duplicate = false AND {where_clause}"
-        ).replace(
-            f"where {table_alias}.is_duplicate = false",
-            f"where {table_alias}.is_duplicate = false AND {where_clause}"
+    # Try to find WHERE clause with is_duplicate check (most common pattern)
+    query_upper = query.upper()
+    
+    # Pattern 1: WHERE table_alias.is_duplicate = false
+    if detected_alias:
+        pattern1 = f"WHERE {detected_alias}.is_duplicate = false"
+        pattern1_lower = f"where {detected_alias}.is_duplicate = false"
+        if pattern1 in query or pattern1_lower in query:
+            query = query.replace(pattern1, f"{pattern1} AND {where_clause}")
+            query = query.replace(pattern1_lower, f"{pattern1_lower} AND {where_clause}")
+            return query, tuple(params)
+    
+    # Pattern 2: WHERE is_duplicate = false (no table alias)
+    pattern2 = "WHERE is_duplicate = false"
+    pattern2_lower = "where is_duplicate = false"
+    if pattern2 in query or pattern2_lower in query:
+        query = query.replace(pattern2, f"{pattern2} AND {where_clause}")
+        query = query.replace(pattern2_lower, f"{pattern2_lower} AND {where_clause}")
+        return query, tuple(params)
+    
+    # Pattern 3: WHERE clause exists but doesn't have is_duplicate
+    # Find the last WHERE clause and append AND
+    where_positions = []
+    for match in re.finditer(r'\bWHERE\b', query, re.IGNORECASE):
+        where_positions.append(match.end())
+    
+    if where_positions:
+        # Find the last WHERE and add AND before the next keyword
+        last_where_pos = where_positions[-1]
+        # Find the end of the WHERE clause (next AND, GROUP BY, ORDER BY, LIMIT, or end of line)
+        where_end_match = re.search(
+            r'(?i)(?:\s+AND\s+|\s+GROUP\s+BY\s+|\s+ORDER\s+BY\s+|\s+LIMIT\s+|$)',
+            query[last_where_pos:]
         )
-    elif "WHERE is_duplicate = false" in query or "where is_duplicate = false" in query:
-        query = query.replace(
-            "WHERE is_duplicate = false",
-            f"WHERE is_duplicate = false AND {where_clause}"
-        ).replace(
-            "where is_duplicate = false",
-            f"where is_duplicate = false AND {where_clause}"
-        )
-    else:
-        # If no WHERE clause found, add one before GROUP BY, ORDER BY, or LIMIT
-        # This is a fallback - most queries should have WHERE is_duplicate = false
-        if "GROUP BY" in query.upper():
-            query = query.replace("GROUP BY", f"WHERE {where_clause}\nGROUP BY")
-        elif "ORDER BY" in query.upper():
-            query = query.replace("ORDER BY", f"WHERE {where_clause}\nORDER BY")
-        elif "LIMIT" in query.upper():
-            query = query.replace("LIMIT", f"WHERE {where_clause}\nLIMIT")
+        if where_end_match:
+            insert_pos = last_where_pos + where_end_match.start()
+            # Check if there's already content after WHERE
+            where_content = query[last_where_pos:insert_pos].strip()
+            if where_content:
+                query = query[:insert_pos] + f" AND {where_clause}" + query[insert_pos:]
+            else:
+                query = query[:insert_pos] + f" {where_clause}" + query[insert_pos:]
         else:
-            # Last resort: append WHERE clause at the end
+            # Append at end of WHERE clause
+            query = query[:last_where_pos] + f" AND {where_clause}" + query[last_where_pos:]
+        return query, tuple(params)
+    
+    # Pattern 4: No WHERE clause found, add one before GROUP BY, ORDER BY, or LIMIT
+    if "GROUP BY" in query_upper:
+        query = re.sub(r'\bGROUP BY\b', f"WHERE {where_clause}\nGROUP BY", query, flags=re.IGNORECASE, count=1)
+    elif "ORDER BY" in query_upper:
+        query = re.sub(r'\bORDER BY\b', f"WHERE {where_clause}\nORDER BY", query, flags=re.IGNORECASE, count=1)
+    elif "LIMIT" in query_upper:
+        query = re.sub(r'\bLIMIT\b', f"WHERE {where_clause}\nLIMIT", query, flags=re.IGNORECASE, count=1)
+    else:
+        # Last resort: append WHERE clause at the end (before semicolon if present)
+        if query.rstrip().endswith(';'):
+            query = query.rstrip()[:-1] + f"\nWHERE {where_clause};"
+        else:
             query = f"{query}\nWHERE {where_clause}"
     
     return query, tuple(params)

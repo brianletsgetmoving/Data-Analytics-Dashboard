@@ -17,7 +17,8 @@ async def get_churn_prediction(
 ):
     """Get at-risk customers (churn prediction)."""
     query = load_sql_query("customer_churn_prediction", "customer_behavior")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
