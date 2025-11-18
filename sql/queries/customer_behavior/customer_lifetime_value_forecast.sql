@@ -38,31 +38,31 @@ ltv_forecast as (
         years_active,
         -- Calculate job frequency (jobs per month)
         case
-            when customer_lifetime_days > 0 then
+            when extract(epoch from customer_lifetime_days) > 0 then
                 round((total_jobs::numeric / (extract(epoch from customer_lifetime_days)::numeric / 86400.0 / 30.0)), 2)
             else 0
         end as jobs_per_month,
         -- Calculate monthly revenue rate
         case
-            when customer_lifetime_days > 0 then
+            when extract(epoch from customer_lifetime_days) > 0 then
                 round((total_revenue / (extract(epoch from customer_lifetime_days)::numeric / 86400.0 / 30.0))::numeric, 2)
             else 0
         end as monthly_revenue_rate,
         -- Forecast LTV for next 12 months (assuming same rate)
         case
-            when customer_lifetime_days > 0 then
+            when extract(epoch from customer_lifetime_days) > 0 then
                 round((total_revenue + (total_revenue / (extract(epoch from customer_lifetime_days)::numeric / 86400.0 / 30.0) * 12))::numeric, 2)
             else total_revenue
         end as forecasted_ltv_12_months,
         -- Forecast LTV for next 24 months
         case
-            when customer_lifetime_days > 0 then
+            when extract(epoch from customer_lifetime_days) > 0 then
                 round((total_revenue + (total_revenue / (extract(epoch from customer_lifetime_days)::numeric / 86400.0 / 30.0) * 24))::numeric, 2)
             else total_revenue
         end as forecasted_ltv_24_months,
         -- Forecast LTV for next 36 months
         case
-            when customer_lifetime_days > 0 then
+            when extract(epoch from customer_lifetime_days) > 0 then
                 round((total_revenue + (total_revenue / (extract(epoch from customer_lifetime_days)::numeric / 86400.0 / 30.0) * 36))::numeric, 2)
             else total_revenue
         end as forecasted_ltv_36_months

@@ -99,7 +99,7 @@ def apply_filters_to_query(query: str, filters: UniversalFilter, table_alias: Op
     
     # Apply filters to query
     # Try to find WHERE clause with is_duplicate check
-    if f"WHERE {table_alias}.is_duplicate = false" in query or f"where {table_alias}.is_duplicate = false" in query:
+    if table_alias and (f"WHERE {table_alias}.is_duplicate = false" in query or f"where {table_alias}.is_duplicate = false" in query):
         query = query.replace(
             f"WHERE {table_alias}.is_duplicate = false",
             f"WHERE {table_alias}.is_duplicate = false AND {where_clause}"

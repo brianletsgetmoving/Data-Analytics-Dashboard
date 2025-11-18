@@ -8,7 +8,7 @@ with customer_rfm as (
         c.email,
         c.phone,
         max(j.job_date) as last_job_date,
-        current_date - max(j.job_date) as recency_days,
+        extract(epoch from (current_date - max(j.job_date))) / 86400 as recency_days,
         count(distinct j.id) as frequency_jobs,
         sum(coalesce(j.total_actual_cost, j.total_estimated_cost, 0)) as monetary_value,
         count(distinct date_trunc('month', j.job_date)) as frequency_months,

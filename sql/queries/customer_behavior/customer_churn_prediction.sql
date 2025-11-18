@@ -63,7 +63,7 @@ select
     risk_level,
     case
         when days_since_last_job is not null then
-            round(days_since_last_job::numeric / 30.0, 1)
+            round(extract(epoch from days_since_last_job)::numeric / 86400.0 / 30.0, 1)
         else null
     end as months_since_last_job
 from

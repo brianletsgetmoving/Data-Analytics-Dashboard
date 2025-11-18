@@ -65,14 +65,10 @@ async def get_customer_profitability(
 ):
     """Get customer profitability ranking."""
     query = load_sql_query("customer_profitability", "profitability")
-    
-    where_clause, params = build_where_clause(filters)
-    if where_clause != "1=1":
-        # Note: customer_profitability uses customers table, so filters need adjustment
-        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
-        results = db.execute_query(query, tuple(params))
-    else:
-        results = db.execute_query(query)
+    # Note: customer_profitability query joins customers and jobs tables, 
+    # but filters are applied to jobs table (j alias) which is correct
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -87,13 +83,8 @@ async def get_roi_by_source(
 ):
     """Get ROI analysis by referral source."""
     query = load_sql_query("roi_by_referral_source", "profitability")
-    
-    where_clause, params = build_where_clause(filters)
-    if where_clause != "1=1":
-        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
-        results = db.execute_query(query, tuple(params))
-    else:
-        results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -125,13 +116,8 @@ async def get_pricing_optimization(
 ):
     """Get pricing optimization analysis."""
     query = load_sql_query("pricing_optimization", "profitability")
-    
-    where_clause, params = build_where_clause(filters)
-    if where_clause != "1=1":
-        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
-        results = db.execute_query(query, tuple(params))
-    else:
-        results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
