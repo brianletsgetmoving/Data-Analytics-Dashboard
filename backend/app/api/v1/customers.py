@@ -15,7 +15,8 @@ async def get_customer_demographics(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get customer demographics data."""
-    where_clause, params = build_where_clause(filters)
+    # Build where clause with job table alias since filters apply to jobs
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         SELECT 
@@ -27,7 +28,7 @@ async def get_customer_demographics(
             COUNT(DISTINCT j.id) as total_jobs
         FROM customers c
         LEFT JOIN jobs j ON c.id = j.customer_id
-        WHERE {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}
+        WHERE {where_clause}
         GROUP BY c.origin_city, c.origin_state, c.destination_city, c.destination_state
         ORDER BY customer_count DESC
         LIMIT 100
@@ -47,7 +48,8 @@ async def get_customer_segmentation(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get customer segmentation by value."""
-    where_clause, params = build_where_clause(filters)
+    # Build where clause with job table alias since filters apply to jobs
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         WITH customer_revenue AS (
@@ -56,7 +58,7 @@ async def get_customer_segmentation(
                 SUM(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) as total_revenue
             FROM customers c
             LEFT JOIN jobs j ON c.id = j.customer_id
-            WHERE {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}
+            WHERE {where_clause}
             AND j.opportunity_status IN ('BOOKED', 'CLOSED')
             GROUP BY c.id
         )
@@ -100,7 +102,8 @@ async def get_gender_breakdown(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get customer gender breakdown."""
-    where_clause, params = build_where_clause(filters)
+    # Build where clause with job table alias since filters apply to jobs
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         SELECT 
@@ -110,7 +113,7 @@ async def get_gender_breakdown(
             SUM(COALESCE(j.total_actual_cost, j.total_estimated_cost, 0)) as total_revenue
         FROM customers c
         LEFT JOIN jobs j ON c.id = j.customer_id
-        WHERE {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}
+        WHERE {where_clause}
         GROUP BY c.gender
         ORDER BY customer_count DESC
     """
@@ -129,7 +132,8 @@ async def get_customer_lifetime_value(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get customer lifetime value analysis."""
-    where_clause, params = build_where_clause(filters)
+    # Build where clause with job table alias since filters apply to jobs
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         SELECT 
@@ -141,7 +145,7 @@ async def get_customer_lifetime_value(
             MAX(j.job_date) as last_job_date
         FROM customers c
         LEFT JOIN jobs j ON c.id = j.customer_id
-        WHERE {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}
+        WHERE {where_clause}
         AND j.opportunity_status IN ('BOOKED', 'CLOSED')
         GROUP BY c.id, c.name
         HAVING COUNT(DISTINCT j.id) > 0
@@ -163,7 +167,8 @@ async def get_customer_retention(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get customer retention metrics."""
-    where_clause, params = build_where_clause(filters)
+    # Build where clause with job table alias since filters apply to jobs
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         WITH customer_jobs AS (
@@ -173,7 +178,7 @@ async def get_customer_retention(
                 COUNT(DISTINCT DATE_TRUNC('year', j.job_date)) as active_years
             FROM customers c
             LEFT JOIN jobs j ON c.id = j.customer_id
-            WHERE {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}
+            WHERE {where_clause}
             AND j.opportunity_status IN ('BOOKED', 'CLOSED')
             GROUP BY c.id
         )
@@ -212,7 +217,8 @@ async def get_geographic_distribution(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get customer geographic distribution."""
-    where_clause, params = build_where_clause(filters)
+    # Build where clause with job table alias since filters apply to jobs
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         SELECT 
@@ -224,7 +230,7 @@ async def get_geographic_distribution(
             COUNT(DISTINCT c.id) as destination_customer_count
         FROM customers c
         LEFT JOIN jobs j ON c.id = j.customer_id
-        WHERE {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}
+        WHERE {where_clause}
         GROUP BY c.origin_city, c.origin_state, c.destination_city, c.destination_state
         ORDER BY origin_customer_count DESC, destination_customer_count DESC
         LIMIT 100

@@ -86,7 +86,7 @@ async def get_sales_trends(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Get sales performance trends over time."""
-    where_clause, params = build_where_clause(filters)
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         SELECT 
@@ -118,7 +118,7 @@ async def get_sales_comparison(
     filters: UniversalFilter = Depends(get_filters),
 ):
     """Compare sales person performance."""
-    where_clause, params = build_where_clause(filters)
+    where_clause, params = build_where_clause(filters, table_alias="j")
     
     query = f"""
         SELECT 
