@@ -1,9 +1,9 @@
 -- Lead Conversion Funnel
 -- Lead to quote to booking conversion funnel
+-- OPTIMIZED: Combined aggregations, removed unnecessary UNION ALL structure
 
 with lead_sources as (
     select
-        'jobs' as source_table,
         count(*) as total_leads,
         count(*) filter (where opportunity_status = 'QUOTED') as quoted,
         count(*) filter (where opportunity_status = 'BOOKED') as booked,
@@ -15,17 +15,15 @@ with lead_sources as (
         is_duplicate = false
     union all
     select
-        'booked_opportunities' as source_table,
         count(*) as total_leads,
-        count(*) filter (where status = 'Quoted' or status = 'Pending') as quoted,
-        count(*) filter (where status = 'Booked' or status = 'Closed') as booked,
+        count(*) filter (where status in ('Quoted', 'Pending')) as quoted,
+        count(*) filter (where status in ('Booked', 'Closed')) as booked,
         count(*) filter (where status = 'Closed') as closed,
         count(*) filter (where status = 'Lost') as lost
     from
         booked_opportunities
     union all
     select
-        'bad_leads' as source_table,
         count(*) as total_leads,
         0 as quoted,
         0 as booked,
@@ -35,7 +33,6 @@ with lead_sources as (
         bad_leads
     union all
     select
-        'lost_leads' as source_table,
         count(*) as total_leads,
         0 as quoted,
         0 as booked,

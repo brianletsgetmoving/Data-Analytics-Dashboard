@@ -8,6 +8,7 @@ This document provides an index of all SQL queries available in the `sql/queries
 - **Purpose**: Overview of all customer relationships across jobs, bad leads, and booked opportunities
 - **Key Outputs**: Customer ID, job counts, bad lead counts, booked opportunity counts, customer type classification
 - **Relationships Used**: Customer → Jobs, Customer → BadLeads, Customer → BookedOpportunities
+- **Optimized**: Changed LEFT JOIN to INNER JOIN where appropriate, added HAVING clauses to reduce aggregation overhead
 
 ### customer_lead_journey.sql
 - **Purpose**: Tracks customer journey from lead to booking/loss across all modules
@@ -28,6 +29,7 @@ This document provides an index of all SQL queries available in the `sql/queries
 - **Purpose**: Calculates total revenue, job counts, and lifetime duration per customer
 - **Key Outputs**: Customer lifetime value, revenue by status, customer lifetime years
 - **Relationships Used**: Customer → Jobs
+- **Optimized**: Changed LEFT JOIN to INNER JOIN, added early WHERE filter for opportunity_status
 
 ## Lead Analysis Queries
 
@@ -55,6 +57,7 @@ This document provides an index of all SQL queries available in the `sql/queries
 - **Purpose**: Lead to quote to booking conversion funnel
 - **Key Outputs**: Total leads, quoted, booked, closed, lost counts and percentages
 - **Relationships Used**: Aggregates across Jobs, BookedOpportunities, BadLeads, LostLeads
+- **Optimized**: Combined aggregations, optimized UNION ALL structure
 
 ### lead_status_distribution.sql
 - **Purpose**: Distribution of leads by status across different sources
@@ -316,6 +319,234 @@ This document provides an index of all SQL queries available in the `sql/queries
 - **Purpose**: Job bookings by branch
 - **Key Outputs**: Booking counts and revenue by branch
 - **Relationships Used**: Jobs, BookedOpportunities
+
+## Demographics Analytics Queries
+
+### demographics/gender_distribution.sql
+- **Purpose**: Customer gender distribution across all customers and by various segments
+- **Key Outputs**: Gender distribution, customer counts, job counts, revenue by gender
+- **Relationships Used**: Customer → Jobs
+- **New Field Used**: Customer.gender
+
+### demographics/gender_revenue_analysis.sql
+- **Purpose**: Revenue patterns and job value analysis by customer gender
+- **Key Outputs**: Revenue metrics, percentiles, booking rates by gender
+- **Relationships Used**: Customer → Jobs
+- **New Field Used**: Customer.gender
+
+### demographics/gender_job_preferences.sql
+- **Purpose**: Job type, branch, and service preferences by customer gender
+- **Key Outputs**: Preferred job types, branches, timing preferences by gender
+- **Relationships Used**: Customer → Jobs
+- **New Field Used**: Customer.gender
+
+### demographics/gender_conversion_rates.sql
+- **Purpose**: Lead to customer conversion rates by gender
+- **Key Outputs**: Conversion rates, booking rates, loss rates by gender
+- **Relationships Used**: Customer → LeadStatus → BookedOpportunities → Jobs
+- **New Field Used**: Customer.gender
+
+## Data Quality Analytics Queries
+
+### data_quality/merge_history_analysis.sql
+- **Purpose**: Analyze customer merge patterns and methods from merge_history JSONB field
+- **Key Outputs**: Merge methods, confidence levels, merge frequency
+- **Relationships Used**: Customer.merge_history (JSONB)
+- **New Field Used**: Customer.merge_history, Customer.mergedFromIds
+
+### data_quality/merge_method_performance.sql
+- **Purpose**: Performance metrics for different customer merge methods
+- **Key Outputs**: Revenue and job metrics by merge method
+- **Relationships Used**: Customer.merge_history → Jobs, BookedOpportunities
+- **New Field Used**: Customer.merge_history
+
+### data_quality/duplicate_prevention_insights.sql
+- **Purpose**: Patterns in duplicate detection and prevention
+- **Key Outputs**: Duplicate patterns by month, branch, sales person, customer
+- **Relationships Used**: Jobs.is_duplicate
+- **New Field Used**: Job.is_duplicate
+
+## Lead Response & Timing Analytics Queries
+
+### leads/response_time_impact.sql
+- **Purpose**: Impact of timeToContact on lead conversion rates
+- **Key Outputs**: Conversion rates by response time buckets
+- **Relationships Used**: LeadStatus.timeToContact → BookedOpportunities
+- **New Field Used**: LeadStatus.timeToContact
+
+### leads/lead_response_performance.sql
+- **Purpose**: Response time performance by sales person and branch
+- **Key Outputs**: Response times, conversion rates by sales person/branch
+- **Relationships Used**: LeadStatus.timeToContact → SalesPerson, Branch
+- **New Field Used**: LeadStatus.timeToContact
+
+### leads/optimal_response_time.sql
+- **Purpose**: Identify optimal response time windows for maximum conversion
+- **Key Outputs**: Conversion rates by response time windows, performance categories
+- **Relationships Used**: LeadStatus.timeToContact → BookedOpportunities
+- **New Field Used**: LeadStatus.timeToContact
+
+## Win/Loss Analysis Queries
+
+### leads/loss_reason_analysis.sql
+- **Purpose**: Analyze LostLead.reason patterns and their impact
+- **Key Outputs**: Loss reasons, lost value, frequency by reason
+- **Relationships Used**: LostLead.reason → BookedOpportunities
+- **New Field Used**: LostLead.reason
+
+### leads/bad_lead_reason_patterns.sql
+- **Purpose**: Analyze BadLead.leadBadReason patterns
+- **Key Outputs**: Bad lead reasons, patterns by provider and lead source
+- **Relationships Used**: BadLead.leadBadReason → LeadSource
+- **New Field Used**: BadLead.leadBadReason
+
+### leads/win_loss_by_reason.sql
+- **Purpose**: Conversion rates by loss reason category
+- **Key Outputs**: Win/loss rates, values by reason
+- **Relationships Used**: LostLead.reason → BookedOpportunities
+- **New Field Used**: LostLead.reason
+
+## Lead Source Category Analytics Queries
+
+### leads/lead_source_category_performance.sql
+- **Purpose**: Performance metrics by LeadSource.category
+- **Key Outputs**: Leads, conversions, revenue by category
+- **Relationships Used**: LeadSource.category → LeadStatus → BookedOpportunities
+- **New Field Used**: LeadSource.category
+
+### leads/category_conversion_funnel.sql
+- **Purpose**: Conversion funnel analysis by lead source category
+- **Key Outputs**: Funnel metrics by category
+- **Relationships Used**: LeadSource.category → LeadStatus → BookedOpportunities
+- **New Field Used**: LeadSource.category
+
+### leads/category_customer_lifetime_value.sql
+- **Purpose**: Customer lifetime value analysis by lead source category
+- **Key Outputs**: LTV metrics by category
+- **Relationships Used**: LeadSource.category → Customers → Jobs
+- **New Field Used**: LeadSource.category
+
+## Geographic Customer Pattern Queries
+
+### geographic/customer_origin_patterns.sql
+- **Purpose**: Customer origin city/state analysis
+- **Key Outputs**: Customer counts, revenue by origin location
+- **Relationships Used**: Customer.originCity/originState → Jobs
+- **New Field Used**: Customer.originCity, Customer.originState
+
+### geographic/customer_destination_patterns.sql
+- **Purpose**: Customer destination preferences analysis
+- **Key Outputs**: Customer counts, revenue by destination location
+- **Relationships Used**: Customer.destinationCity/destinationState → Jobs
+- **New Field Used**: Customer.destinationCity, Customer.destinationState
+
+### geographic/origin_destination_correlations.sql
+- **Purpose**: Common origin-destination pairs and route patterns
+- **Key Outputs**: Route frequency, revenue by origin-destination pairs
+- **Relationships Used**: Customer origin/destination → Jobs
+- **New Field Used**: Customer.originCity, Customer.destinationCity
+
+### geographic/branch_geographic_coverage.sql
+- **Purpose**: Branch coverage analysis by city and state
+- **Key Outputs**: Cities/states served, coverage metrics by branch
+- **Relationships Used**: Branch.city/state → Jobs
+- **New Field Used**: Branch.city, Branch.state
+
+## Affiliate & Referral ROI Queries
+
+### referrals/affiliate_performance.sql
+- **Purpose**: affiliateName performance analysis
+- **Key Outputs**: Jobs, revenue, booking rates by affiliate
+- **Relationships Used**: Job.affiliateName → Jobs
+- **New Field Used**: Job.affiliateName
+
+### referrals/referral_source_roi.sql
+- **Purpose**: ROI analysis by referral source
+- **Key Outputs**: Revenue per lead, conversion rates by referral source
+- **Relationships Used**: Job.referralSource → Jobs → BookedOpportunities
+- **New Field Used**: Job.referralSource
+
+### referrals/affiliate_customer_lifetime_value.sql
+- **Purpose**: Customer lifetime value by affiliate
+- **Key Outputs**: LTV metrics by affiliate
+- **Relationships Used**: Job.affiliateName → Customers → Jobs
+- **New Field Used**: Job.affiliateName
+
+## Advanced Operational Analytics Queries
+
+### operational/crew_truck_utilization_by_route.sql
+- **Purpose**: Resource utilization analysis by route type (local, intrastate, interstate)
+- **Key Outputs**: Crew/truck utilization, revenue per resource hour by route type
+- **Relationships Used**: Jobs → route type calculation
+- **New Analysis**: Route type classification
+
+### operational/job_type_geographic_profitability.sql
+- **Purpose**: Job type profitability analysis by geographic region
+- **Key Outputs**: Profitability metrics by job type and region
+- **Relationships Used**: Jobs → geographic regions
+- **New Analysis**: Geographic profitability patterns
+
+### operational/sales_person_specialization.sql
+- **Purpose**: Identify sales person specialization patterns by job type, branch, and customer segment
+- **Key Outputs**: Specialization levels, primary job types/branches per sales person
+- **Relationships Used**: SalesPerson → Jobs, BookedOpportunities, LeadStatus
+- **New Analysis**: Specialization patterns
+
+### operational/branch_capacity_analysis.sql
+- **Purpose**: Branch capacity vs demand analysis
+- **Key Outputs**: Capacity metrics, demand variance, utilization rates
+- **Relationships Used**: Branch → Jobs
+- **New Analysis**: Capacity planning metrics
+
+## Customer Cohort Analysis Queries
+
+### customer_behavior/customer_acquisition_cohorts.sql
+- **Purpose**: Cohort analysis by customer acquisition date (first_lead_date)
+- **Key Outputs**: Active customers, jobs, revenue by cohort and period
+- **Relationships Used**: Customer.firstLeadDate → Jobs
+- **New Field Used**: Customer.firstLeadDate
+
+### customer_behavior/retention_cohort_analysis.sql
+- **Purpose**: Customer retention rates by acquisition cohort
+- **Key Outputs**: Retention rates by quarter and cohort
+- **Relationships Used**: Customer.firstLeadDate → Jobs
+- **New Field Used**: Customer.firstLeadDate
+
+### customer_behavior/cohort_revenue_analysis.sql
+- **Purpose**: Revenue patterns by customer acquisition cohort
+- **Key Outputs**: Revenue by cohort and months since acquisition
+- **Relationships Used**: Customer.firstLeadDate → Jobs
+- **New Field Used**: Customer.firstLeadDate
+
+## Query Optimization Notes
+
+### Optimized Queries
+
+1. **customer_lifetime_value.sql**
+   - Changed LEFT JOIN to INNER JOIN (only customers with jobs needed)
+   - Added early WHERE filter for opportunity_status
+   - Reduced dataset size before aggregation
+
+2. **lead_conversion_funnel.sql**
+   - Optimized UNION ALL structure
+   - Combined status checks using IN clause
+
+3. **customer_relationship_summary.sql**
+   - Changed LEFT JOIN to INNER JOIN for jobs
+   - Added HAVING clauses to reduce aggregation overhead
+   - Only aggregate where relationships exist
+
+4. **operational/bottleneck_identification.sql**
+   - Optimized date calculations (using extract(epoch) instead of interval arithmetic)
+   - Added early filters for null checks
+   - Converted interval comparisons to numeric comparisons
+
+### Performance Improvements
+
+- **Index Usage**: All new queries leverage existing and new composite indexes
+- **Filter Early**: All optimized queries filter by `is_duplicate = false` and `opportunity_status` early
+- **JOIN Optimization**: Changed unnecessary LEFT JOINs to INNER JOINs where NULLs not needed
+- **Aggregation Optimization**: Added HAVING clauses to reduce aggregation overhead
 
 ## Query Usage Guidelines
 

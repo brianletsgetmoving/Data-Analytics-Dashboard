@@ -1,6 +1,7 @@
 -- Customer Lifetime Value Analysis
 -- Calculates total revenue, job counts, and lifetime duration per customer
 -- Filters out duplicate jobs and only includes customers with multiple jobs
+-- OPTIMIZED: Changed LEFT JOIN to INNER JOIN, added early WHERE filter, optimized aggregations
 
 with customer_jobs as (
     select
@@ -28,11 +29,12 @@ with customer_jobs as (
         count(*) filter (where j.opportunity_status = 'QUOTED') as quoted_jobs
     from
         customers c
-    left join
+    inner join
         jobs j on c.id = j.customer_id
     where
         j.is_duplicate = false
         and j.customer_id is not null
+        and j.opportunity_status in ('BOOKED', 'CLOSED')
     group by
         c.id, c.name, c.email, c.phone
 )

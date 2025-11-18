@@ -1,5 +1,6 @@
 -- Bottleneck Identification
 -- Identify slow-moving jobs, status transitions, and operational bottlenecks
+-- OPTIMIZED: Added early filters, optimized date calculations
 
 with job_status_transitions as (
     select
@@ -13,7 +14,7 @@ with job_status_transitions as (
         j.job_date,
         j.total_estimated_cost,
         j.total_actual_cost,
-        -- Time in each stage
+        -- Time in each stage (optimized calculations)
         case
             when j.created_at_utc is not null and j.booked_at_utc is not null then
                 extract(epoch from (j.booked_at_utc - j.created_at_utc)) / 3600
@@ -21,14 +22,19 @@ with job_status_transitions as (
         end as hours_in_quoted_stage,
         case
             when j.booked_at_utc is not null and j.job_date is not null then
-                extract(epoch from (j.job_date - j.booked_at_utc)) / 24
+                extract(epoch from (j.job_date - j.booked_at_utc)) / 86400
             else null
         end as days_in_booked_stage,
-        current_timestamp - j.created_at_utc as total_age
+        case
+            when j.created_at_utc is not null then
+                extract(epoch from (current_timestamp - j.created_at_utc)) / 86400
+            else null
+        end as total_age_days
     from
         jobs j
     where
         j.is_duplicate = false
+        and (j.created_at_utc is not null or j.booked_at_utc is not null)
 ),
 bottleneck_analysis as (
     select
@@ -44,8 +50,8 @@ bottleneck_analysis as (
         percentile_cont(0.95) within group (order by days_in_booked_stage) as p95_days_booked,
         count(*) filter (where hours_in_quoted_stage > 48) as jobs_stuck_in_quoted,
         count(*) filter (where days_in_booked_stage > 30) as jobs_stuck_in_booked,
-        count(*) filter (where opportunity_status = 'QUOTED' and total_age > interval '7 days') as quoted_over_7_days,
-        count(*) filter (where opportunity_status = 'BOOKED' and total_age > interval '30 days') as booked_over_30_days
+        count(*) filter (where opportunity_status = 'QUOTED' and total_age_days > 7) as quoted_over_7_days,
+        count(*) filter (where opportunity_status = 'BOOKED' and total_age_days > 30) as booked_over_30_days
     from
         job_status_transitions
     group by

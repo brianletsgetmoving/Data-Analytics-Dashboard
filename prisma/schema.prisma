@@ -89,6 +89,11 @@ model Job {
   @@index([originCity])
   @@index([destinationCity])
   @@index([customerId, opportunityStatus])
+  @@index([opportunityStatus, jobDate, isDuplicate])
+  @@index([branchId, opportunityStatus, jobDate])
+  @@index([affiliateName])
+  @@index([originState])
+  @@index([destinationState])
   @@map("jobs")
 }
 
@@ -157,6 +162,7 @@ model BookedOpportunity {
   @@index([phoneNumber])
   @@index([bookedDate])
   @@index([customerId, bookedDate])
+  @@index([customerId, branchId, bookedDate])
   @@map("booked_opportunities")
 }
 
@@ -185,6 +191,7 @@ model LeadStatus {
   @@index([salesPersonId])
   @@index([leadSourceId])
   @@index([branchId])
+  @@index([leadSourceId, createdAt])
   @@map("lead_status")
 }
 
@@ -208,6 +215,7 @@ model LostLead {
 
   @@index([bookedOpportunityId])
   @@index([leadSourceId])
+  @@index([reason])
   @@map("lost_leads")
 }
 
@@ -301,6 +309,9 @@ model Customer {
   @@index([lastName])
   @@index([firstLeadDate])
   @@index([conversionDate])
+  @@index([firstLeadDate, conversionDate])
+  @@index([originState])
+  @@index([destinationState])
   @@map("customers")
 }
 

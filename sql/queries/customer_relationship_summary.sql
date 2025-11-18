@@ -18,7 +18,7 @@ with customer_jobs_summary as (
         max(j.job_date) as last_job_date
     from
         customers c
-    left join
+    inner join
         jobs j on c.id = j.customer_id
     where
         j.is_duplicate = false
@@ -28,6 +28,7 @@ with customer_jobs_summary as (
 ),
 customer_bad_leads_summary as (
     -- Count bad leads associated with customers
+    -- OPTIMIZED: Only aggregate where bad leads exist
     select
         c.id as customer_id,
         count(bl.id) as bad_lead_count,
@@ -38,9 +39,12 @@ customer_bad_leads_summary as (
         bad_leads bl on c.id = bl.customer_id
     group by
         c.id
+    having
+        count(bl.id) > 0
 ),
 customer_booked_opportunities_summary as (
     -- Count booked opportunities for each customer
+    -- OPTIMIZED: Only aggregate where opportunities exist
     select
         c.id as customer_id,
         count(bo.id) as booked_opportunity_count,
@@ -53,6 +57,8 @@ customer_booked_opportunities_summary as (
         booked_opportunities bo on c.id = bo.customer_id
     group by
         c.id
+    having
+        count(bo.id) > 0
 )
 select
     cjs.customer_id,
