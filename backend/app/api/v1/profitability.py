@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from ...schemas.analytics import AnalyticsResponse
 from ...schemas.filters import UniversalFilter
 from ...database import db
-from ...utils.filters import build_where_clause
+from ...utils.filters import apply_filters_to_query
 from ...utils.sql_loader import load_sql_query
 from ...api.dependencies import get_filters
 
@@ -17,15 +17,8 @@ async def get_job_margins(
 ):
     """Get job margin analysis."""
     query = load_sql_query("job_margins", "profitability")
-    
-    # Apply filters if needed (job_margins query doesn't have WHERE clause by default)
-    where_clause, params = build_where_clause(filters)
-    if where_clause != "1=1":
-        # Add WHERE clause if filters are provided
-        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
-        results = db.execute_query(query, tuple(params))
-    else:
-        results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -40,13 +33,8 @@ async def get_branch_profitability(
 ):
     """Get branch profitability analysis."""
     query = load_sql_query("branch_profitability", "profitability")
-    
-    where_clause, params = build_where_clause(filters)
-    if where_clause != "1=1":
-        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
-        results = db.execute_query(query, tuple(params))
-    else:
-        results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -61,13 +49,8 @@ async def get_job_type_profitability(
 ):
     """Get job type profitability analysis."""
     query = load_sql_query("job_type_profitability", "profitability")
-    
-    where_clause, params = build_where_clause(filters)
-    if where_clause != "1=1":
-        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
-        results = db.execute_query(query, tuple(params))
-    else:
-        results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,

@@ -33,7 +33,8 @@ async def get_ltv_forecast(
 ):
     """Get predictive LTV forecast."""
     query = load_sql_query("customer_lifetime_value_forecast", "customer_behavior")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -48,7 +49,8 @@ async def get_customer_journey(
 ):
     """Get customer journey analysis."""
     query = load_sql_query("customer_journey_analysis", "customer_behavior")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -63,7 +65,8 @@ async def get_rfm_segmentation(
 ):
     """Get RFM (Recency, Frequency, Monetary) segmentation."""
     query = load_sql_query("customer_segmentation_advanced", "customer_behavior")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -78,7 +81,8 @@ async def get_customer_preferences(
 ):
     """Get customer preferences analysis."""
     query = load_sql_query("customer_preferences_analysis", "customer_behavior")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -93,7 +97,8 @@ async def get_acquisition_cost(
 ):
     """Get customer acquisition cost (CAC) analysis."""
     query = load_sql_query("customer_acquisition_cost", "customer_behavior")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -108,7 +113,8 @@ async def get_repeat_patterns(
 ):
     """Get repeat customer patterns."""
     query = load_sql_query("repeat_customer_patterns", "customer_behavior")
-    results = db.execute_query(query)
+    query, params = apply_filters_to_query(query, filters)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,

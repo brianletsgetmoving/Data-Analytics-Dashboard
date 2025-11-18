@@ -84,10 +84,10 @@ select
     job_trend_direction,
     revenue_trend_direction,
     case
-        when yoy_revenue_change_percent > 10 then 'strong_growth'
-        when yoy_revenue_change_percent > 5 then 'moderate_growth'
-        when yoy_revenue_change_percent > 0 then 'slow_growth'
-        when yoy_revenue_change_percent > -5 then 'declining'
+        when round(((revenue - same_month_previous_year_revenue)::numeric / nullif(same_month_previous_year_revenue, 0) * 100), 2) > 10 then 'strong_growth'
+        when round(((revenue - same_month_previous_year_revenue)::numeric / nullif(same_month_previous_year_revenue, 0) * 100), 2) > 5 then 'moderate_growth'
+        when round(((revenue - same_month_previous_year_revenue)::numeric / nullif(same_month_previous_year_revenue, 0) * 100), 2) > 0 then 'slow_growth'
+        when round(((revenue - same_month_previous_year_revenue)::numeric / nullif(same_month_previous_year_revenue, 0) * 100), 2) > -5 then 'declining'
         else 'sharp_decline'
     end as growth_category,
     -- Seasonality detection (comparing current month to average)

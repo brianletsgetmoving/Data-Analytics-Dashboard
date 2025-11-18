@@ -17,27 +17,37 @@ with monthly_metrics as (
     group by
         date_trunc('month', job_date)
 ),
-statistical_analysis as (
+percentile_calc as (
     select
-        month,
-        job_count,
-        round(revenue::numeric, 2) as revenue,
-        unique_customers,
-        round(avg_job_value::numeric, 2) as avg_job_value,
-        -- Statistical measures
-        avg(job_count) over () as mean_jobs,
-        stddev(job_count) over () as stddev_jobs,
-        avg(revenue) over () as mean_revenue,
-        stddev(revenue) over () as stddev_revenue,
-        avg(avg_job_value) over () as mean_job_value,
-        stddev(avg_job_value) over () as stddev_job_value,
-        -- Percentiles
-        percentile_cont(0.25) within group (order by job_count) over () as p25_jobs,
-        percentile_cont(0.75) within group (order by job_count) over () as p75_jobs,
-        percentile_cont(0.25) within group (order by revenue) over () as p25_revenue,
-        percentile_cont(0.75) within group (order by revenue) over () as p75_revenue
+        percentile_cont(0.25) within group (order by job_count) as p25_jobs,
+        percentile_cont(0.75) within group (order by job_count) as p75_jobs,
+        percentile_cont(0.25) within group (order by revenue) as p25_revenue,
+        percentile_cont(0.75) within group (order by revenue) as p75_revenue
     from
         monthly_metrics
+),
+statistical_analysis as (
+    select
+        mm.month,
+        mm.job_count,
+        round(mm.revenue::numeric, 2) as revenue,
+        mm.unique_customers,
+        round(mm.avg_job_value::numeric, 2) as avg_job_value,
+        -- Statistical measures
+        avg(mm.job_count) over () as mean_jobs,
+        stddev(mm.job_count) over () as stddev_jobs,
+        avg(mm.revenue) over () as mean_revenue,
+        stddev(mm.revenue) over () as stddev_revenue,
+        avg(mm.avg_job_value) over () as mean_job_value,
+        stddev(mm.avg_job_value) over () as stddev_job_value,
+        -- Percentiles (from subquery)
+        pc.p25_jobs,
+        pc.p75_jobs,
+        pc.p25_revenue,
+        pc.p75_revenue
+    from
+        monthly_metrics mm,
+        percentile_calc pc
 ),
 anomaly_detection as (
     select
