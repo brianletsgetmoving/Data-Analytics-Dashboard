@@ -1,0 +1,84 @@
+{
+  "agents": [
+    {
+      "agent_id": 1,
+      "role": "frontend",
+      "name": "Frontend Specialist",
+      "rules_file": ".cursorrules-frontend.md",
+      "allowed_directories": [
+        "frontend/"
+      ],
+      "forbidden_directories": [
+        "backend/",
+        "scripts/",
+        "prisma/",
+        "sql/"
+      ],
+      "coordination_method": "code_comments_todos",
+      "can_coordinate_with": [4],
+      "description": "Handles Next.js/React/TypeScript frontend development, UI components, data visualization, and client-side logic"
+    },
+    {
+      "agent_id": 2,
+      "role": "backend",
+      "name": "Backend Specialist",
+      "rules_file": ".cursorrules-backend.md",
+      "allowed_directories": [
+        "backend/"
+      ],
+      "forbidden_directories": [
+        "frontend/",
+        "scripts/",
+        "prisma/",
+        "sql/"
+      ],
+      "coordination_method": "code_comments_todos",
+      "can_coordinate_with": [1, 3],
+      "description": "Handles FastAPI/Python backend development, API endpoints, database queries, and business logic"
+    },
+    {
+      "agent_id": 3,
+      "role": "database_scripts",
+      "name": "Database/Scripts Specialist",
+      "rules_file": ".cursorrules-database.md",
+      "allowed_directories": [
+        "prisma/",
+        "sql/",
+        "scripts/"
+      ],
+      "forbidden_directories": [
+        "frontend/",
+        "backend/"
+      ],
+      "coordination_method": "code_comments_todos",
+      "can_coordinate_with": [2],
+      "description": "Handles database schema, migrations, SQL queries, and data processing scripts"
+    },
+    {
+      "agent_id": 4,
+      "role": "uiux_design",
+      "name": "UI/UX Design Specialist",
+      "rules_file": ".cursorrules-uiux.md",
+      "allowed_directories": [
+        "frontend/components/",
+        "frontend/app/"
+      ],
+      "forbidden_directories": [
+        "backend/",
+        "scripts/",
+        "prisma/",
+        "sql/"
+      ],
+      "coordination_method": "code_comments_todos",
+      "can_coordinate_with": [1],
+      "description": "Handles UI components, design system, user experience, and visual design. Can split tasks with Frontend agent."
+    }
+  ],
+  "coordination": {
+    "method": "code_comments_todos",
+    "todo_format": "TODO: [Agent N] description",
+    "example": "// TODO: [Agent 2] Add /api/customers endpoint for frontend"
+  },
+  "version": "1.0.0"
+}
+

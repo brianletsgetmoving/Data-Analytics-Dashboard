@@ -11,28 +11,68 @@ This workspace contains a full-stack analytics application with separate fronten
 
 ## Multi-Agent Workflow
 
-When using multiple agents:
+This project uses 4 specialized agents working in parallel. Each agent must:
 
-1. **Frontend Agents** should reference `.cursorrules-frontend.md`
-2. **Backend Agents** should reference `.cursorrules-backend.md`
-3. **Each agent should stay in their domain** - no cross-boundary modifications
+1. **Identify itself**: Read agent ID from `.agent-[N].id` file (where N is 1-4)
+2. **Load configuration**: Read `.agent-config.json` to understand role, boundaries, and coordination methods
+3. **Follow role-specific rules**: Reference the appropriate `.cursorrules-[role].md` file
+4. **Stay within boundaries**: Only modify files in `allowed_directories`, never touch `forbidden_directories`
+5. **Coordinate via TODOs**: Check for `TODO: [Agent N]` comments before starting work
+
+## Agent Configuration
+
+All agents are defined in `.agent-config.json`. Each agent has:
+- Unique `agent_id` (1-4)
+- Specific `role` and `rules_file`
+- `allowed_directories` and `forbidden_directories`
+- `coordination_method` (code_comments_todos)
 
 ## Agent Specialization
 
-### Frontend Agents
+### Agent 1: Frontend Specialist
+- Rules: `.cursorrules-frontend.md`
 - Focus: UI components, data visualization, client-side logic
 - Directory: `frontend/`
 - Never modify: `backend/`, `scripts/`, `prisma/`, `sql/`
+- Can coordinate with: Agent 4 (UI/UX)
 
-### Backend Agents
+### Agent 2: Backend Specialist
+- Rules: `.cursorrules-backend.md`
 - Focus: API endpoints, database queries, business logic
 - Directory: `backend/`
 - Never modify: `frontend/`, `scripts/`, `prisma/`, `sql/`
+- Can coordinate with: Agent 1 (Frontend), Agent 3 (Database/Scripts)
 
-## Coordination
+### Agent 3: Database/Scripts Specialist
+- Rules: `.cursorrules-database.md`
+- Focus: Database schema, migrations, SQL queries, data processing scripts
+- Directories: `prisma/`, `sql/`, `scripts/`
+- Never modify: `frontend/`, `backend/`
+- Can coordinate with: Agent 2 (Backend)
 
-If agents need to coordinate:
-- Use code comments: `// TODO: Backend needs to add /api/endpoint`
+### Agent 4: UI/UX Design Specialist
+- Rules: `.cursorrules-uiux.md`
+- Focus: UI components, design system, user experience, visual design
+- Directories: `frontend/components/`, `frontend/app/`
+- Never modify: `backend/`, `scripts/`, `prisma/`, `sql/`
+- Can coordinate with: Agent 1 (Frontend) - can split tasks
+
+## Coordination via Code Comments/TODOs
+
+Agents coordinate through code comments using the format: `TODO: [Agent N] description`
+
+**Before starting work:**
+- Search codebase for `TODO: [Agent N]` comments addressed to you
+- Check if other agents are working on related files
+- Review coordination documentation in `docs/agent-coordination.md`
+
+**When coordination is needed:**
+- Leave TODO comments: `// TODO: [Agent 2] Add /api/customers endpoint for frontend`
+- Use clear, actionable descriptions
+- Address specific agents by number
+
+**After completing work:**
+- Mark TODOs as resolved or create follow-up TODOs
 - Document API changes in commit messages
 - Update API documentation when endpoints change
 
