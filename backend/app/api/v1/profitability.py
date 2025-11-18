@@ -1,0 +1,158 @@
+"""Profitability analytics endpoints."""
+from fastapi import APIRouter, Depends
+
+from ...schemas.analytics import AnalyticsResponse
+from ...schemas.filters import UniversalFilter
+from ...database import db
+from ...utils.filters import build_where_clause
+from ...utils.sql_loader import load_sql_query
+from ...api.dependencies import get_filters
+
+router = APIRouter()
+
+
+@router.get("/job-margins", response_model=AnalyticsResponse)
+async def get_job_margins(
+    filters: UniversalFilter = Depends(get_filters),
+):
+    """Get job margin analysis."""
+    query = load_sql_query("job_margins", "profitability")
+    
+    # Apply filters if needed (job_margins query doesn't have WHERE clause by default)
+    where_clause, params = build_where_clause(filters)
+    if where_clause != "1=1":
+        # Add WHERE clause if filters are provided
+        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
+        results = db.execute_query(query, tuple(params))
+    else:
+        results = db.execute_query(query)
+    
+    return AnalyticsResponse(
+        data=results,
+        metadata={"count": len(results)},
+        filters_applied=filters,
+    )
+
+
+@router.get("/branch", response_model=AnalyticsResponse)
+async def get_branch_profitability(
+    filters: UniversalFilter = Depends(get_filters),
+):
+    """Get branch profitability analysis."""
+    query = load_sql_query("branch_profitability", "profitability")
+    
+    where_clause, params = build_where_clause(filters)
+    if where_clause != "1=1":
+        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
+        results = db.execute_query(query, tuple(params))
+    else:
+        results = db.execute_query(query)
+    
+    return AnalyticsResponse(
+        data=results,
+        metadata={"count": len(results)},
+        filters_applied=filters,
+    )
+
+
+@router.get("/job-type", response_model=AnalyticsResponse)
+async def get_job_type_profitability(
+    filters: UniversalFilter = Depends(get_filters),
+):
+    """Get job type profitability analysis."""
+    query = load_sql_query("job_type_profitability", "profitability")
+    
+    where_clause, params = build_where_clause(filters)
+    if where_clause != "1=1":
+        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
+        results = db.execute_query(query, tuple(params))
+    else:
+        results = db.execute_query(query)
+    
+    return AnalyticsResponse(
+        data=results,
+        metadata={"count": len(results)},
+        filters_applied=filters,
+    )
+
+
+@router.get("/customer", response_model=AnalyticsResponse)
+async def get_customer_profitability(
+    filters: UniversalFilter = Depends(get_filters),
+):
+    """Get customer profitability ranking."""
+    query = load_sql_query("customer_profitability", "profitability")
+    
+    where_clause, params = build_where_clause(filters)
+    if where_clause != "1=1":
+        # Note: customer_profitability uses customers table, so filters need adjustment
+        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
+        results = db.execute_query(query, tuple(params))
+    else:
+        results = db.execute_query(query)
+    
+    return AnalyticsResponse(
+        data=results,
+        metadata={"count": len(results)},
+        filters_applied=filters,
+    )
+
+
+@router.get("/roi-by-source", response_model=AnalyticsResponse)
+async def get_roi_by_source(
+    filters: UniversalFilter = Depends(get_filters),
+):
+    """Get ROI analysis by referral source."""
+    query = load_sql_query("roi_by_referral_source", "profitability")
+    
+    where_clause, params = build_where_clause(filters)
+    if where_clause != "1=1":
+        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
+        results = db.execute_query(query, tuple(params))
+    else:
+        results = db.execute_query(query)
+    
+    return AnalyticsResponse(
+        data=results,
+        metadata={"count": len(results)},
+        filters_applied=filters,
+    )
+
+
+@router.get("/cost-efficiency", response_model=AnalyticsResponse)
+async def get_cost_efficiency(
+    filters: UniversalFilter = Depends(get_filters),
+):
+    """Get cost efficiency metrics."""
+    query = load_sql_query("cost_efficiency_metrics", "profitability")
+    
+    # Cost efficiency query doesn't have WHERE clause, so we'll execute as-is
+    results = db.execute_query(query)
+    
+    return AnalyticsResponse(
+        data=results,
+        metadata={"count": len(results)},
+        filters_applied=filters,
+    )
+
+
+@router.get("/pricing-optimization", response_model=AnalyticsResponse)
+async def get_pricing_optimization(
+    filters: UniversalFilter = Depends(get_filters),
+):
+    """Get pricing optimization analysis."""
+    query = load_sql_query("pricing_optimization", "profitability")
+    
+    where_clause, params = build_where_clause(filters)
+    if where_clause != "1=1":
+        query = query.replace("WHERE j.is_duplicate = false", f"WHERE j.is_duplicate = false AND {where_clause.replace('job_date', 'j.job_date').replace('branch_name', 'j.branch_name')}")
+        results = db.execute_query(query, tuple(params))
+    else:
+        results = db.execute_query(query)
+    
+    return AnalyticsResponse(
+        data=results,
+        metadata={"count": len(results)},
+        filters_applied=filters,
+    )
+
