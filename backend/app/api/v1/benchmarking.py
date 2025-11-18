@@ -17,7 +17,8 @@ async def get_industry_benchmarks(
 ):
     """Get industry benchmarks."""
     query = load_sql_query("industry_benchmarks", "benchmarking")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -33,7 +34,8 @@ async def get_branch_benchmarking(
 ):
     """Get branch performance benchmarking."""
     query = load_sql_query("branch_performance_benchmarking", "benchmarking")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -49,7 +51,8 @@ async def get_sales_person_benchmarking(
 ):
     """Get sales person performance benchmarking."""
     query = load_sql_query("sales_person_benchmarking", "benchmarking")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -65,7 +68,8 @@ async def get_time_period_benchmarks(
 ):
     """Get time period comparisons."""
     query = load_sql_query("time_period_benchmarks", "benchmarking")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -81,7 +85,8 @@ async def get_market_share(
 ):
     """Get market share analysis."""
     query = load_sql_query("market_share_analysis", "benchmarking")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -97,7 +102,8 @@ async def get_competitive_metrics(
 ):
     """Get competitive metrics."""
     query = load_sql_query("competitive_metrics", "benchmarking")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(

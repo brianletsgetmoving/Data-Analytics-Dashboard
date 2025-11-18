@@ -17,7 +17,8 @@ async def get_job_margins(
 ):
     """Get job margin analysis."""
     query = load_sql_query("job_margins", "profitability")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -33,7 +34,8 @@ async def get_branch_profitability(
 ):
     """Get branch profitability analysis."""
     query = load_sql_query("branch_profitability", "profitability")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -49,7 +51,8 @@ async def get_job_type_profitability(
 ):
     """Get job type profitability analysis."""
     query = load_sql_query("job_type_profitability", "profitability")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -83,7 +86,8 @@ async def get_roi_by_source(
 ):
     """Get ROI analysis by referral source."""
     query = load_sql_query("roi_by_referral_source", "profitability")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -99,9 +103,9 @@ async def get_cost_efficiency(
 ):
     """Get cost efficiency metrics."""
     query = load_sql_query("cost_efficiency_metrics", "profitability")
-    
-    # Cost efficiency query doesn't have WHERE clause, so we'll execute as-is
-    results = db.execute_query(query)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
+    results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
         data=results,
@@ -116,7 +120,8 @@ async def get_pricing_optimization(
 ):
     """Get pricing optimization analysis."""
     query = load_sql_query("pricing_optimization", "profitability")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(

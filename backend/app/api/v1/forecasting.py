@@ -17,7 +17,8 @@ async def get_revenue_forecast(
 ):
     """Get advanced revenue forecasting."""
     query = load_sql_query("revenue_forecast_advanced", "forecasting")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -33,7 +34,8 @@ async def get_job_volume_forecast(
 ):
     """Get job volume forecasting."""
     query = load_sql_query("job_volume_forecast", "forecasting")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -49,7 +51,8 @@ async def get_customer_growth_forecast(
 ):
     """Get customer growth forecasting."""
     query = load_sql_query("customer_growth_forecast", "forecasting")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -65,7 +68,8 @@ async def get_demand_forecast(
 ):
     """Get demand forecasting."""
     query = load_sql_query("demand_forecasting", "forecasting")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -81,7 +85,8 @@ async def get_trend_analysis(
 ):
     """Get trend analysis."""
     query = load_sql_query("trend_analysis", "forecasting")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -97,7 +102,8 @@ async def get_anomalies(
 ):
     """Get anomaly detection."""
     query = load_sql_query("anomaly_detection", "forecasting")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs table (no alias), so filters should be applied without table alias
+    query, params = apply_filters_to_query(query, filters, table_alias=None)
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(

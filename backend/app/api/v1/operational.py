@@ -17,7 +17,8 @@ async def get_capacity_utilization(
 ):
     """Get capacity utilization analysis."""
     query = load_sql_query("capacity_utilization", "operational")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -33,7 +34,8 @@ async def get_routing_efficiency(
 ):
     """Get routing efficiency analysis."""
     query = load_sql_query("routing_efficiency", "operational")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -49,7 +51,8 @@ async def get_job_duration(
 ):
     """Get job duration analysis."""
     query = load_sql_query("job_duration_analysis", "operational")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -65,7 +68,8 @@ async def get_bottlenecks(
 ):
     """Get bottleneck identification."""
     query = load_sql_query("bottleneck_identification", "operational")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -81,7 +85,8 @@ async def get_resource_allocation(
 ):
     """Get resource allocation analysis."""
     query = load_sql_query("resource_allocation", "operational")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -97,7 +102,8 @@ async def get_capacity_planning(
 ):
     """Get seasonal capacity planning."""
     query = load_sql_query("seasonal_capacity_planning", "operational")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
@@ -113,7 +119,8 @@ async def get_scheduling_efficiency(
 ):
     """Get scheduling efficiency analysis."""
     query = load_sql_query("job_scheduling_efficiency", "operational")
-    query, params = apply_filters_to_query(query, filters)
+    # Query uses jobs j table alias, so filters should be applied with j prefix
+    query, params = apply_filters_to_query(query, filters, table_alias="j")
     results = db.execute_query(query, params if params else None)
     
     return AnalyticsResponse(
