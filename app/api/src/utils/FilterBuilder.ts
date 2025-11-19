@@ -5,7 +5,7 @@
  * Builds WHERE clause conditions from FilterParams interface.
  */
 
-import { FilterParams } from '../../../shared/types';
+import { FilterParams } from '@shared/types';
 
 export class FilterBuilder {
   private conditions: string[] = [];

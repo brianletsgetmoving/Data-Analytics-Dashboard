@@ -22,7 +22,7 @@ import {
   BranchPerformance,
   FilterParams,
   AnalyticsResponse,
-} from '../../../shared/types';
+} from '@shared/types';
 
 const router = Router();
 
@@ -202,7 +202,7 @@ export function createAnalyticsRouter(queryService: QueryService): Router {
         data: results,
         metadata: {
           count: results.length,
-          filters_applied: { ...filters, dimension },
+          filters_applied: { ...filters, dimension } as FilterParams & { dimension?: string },
           timestamp: new Date().toISOString(),
         },
       });

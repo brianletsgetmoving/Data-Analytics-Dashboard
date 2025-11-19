@@ -8,7 +8,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { join } from 'path';
-import { ETLExecutionResult } from '../../../shared/types';
+import { ETLExecutionResult } from '@shared/types';
 
 const execAsync = promisify(exec);
 

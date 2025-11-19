@@ -9,7 +9,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { ETLService } from '../services/ETLService';
-import { ETLExecutionResult } from '../../../shared/types';
+import { ETLExecutionResult } from '@shared/types';
 
 const router = Router();
 

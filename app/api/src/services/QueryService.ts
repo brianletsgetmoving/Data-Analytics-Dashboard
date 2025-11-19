@@ -9,7 +9,7 @@ import { PrismaClient } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { FilterBuilder } from '../utils/FilterBuilder';
-import { FilterParams } from '../../../shared/types';
+import { FilterParams } from '@shared/types';
 
 export class QueryService {
   constructor(private prisma: PrismaClient) {}
@@ -70,7 +70,7 @@ export class QueryService {
     const { sql: finalSql, parameters } = this.injectFilters(sql, filters);
 
     // Execute using Prisma $queryRaw with parameterized query
-    const result = await this.prisma.$queryRawUnsafe<T[]>(finalSql, ...parameters);
+    const result = await this.prisma.$queryRawUnsafe(finalSql, ...parameters) as T[];
     return result;
   }
 
@@ -97,7 +97,7 @@ export class QueryService {
       }
     });
 
-    const result = await this.prisma.$queryRawUnsafe<T[]>(sql, ...paramValues);
+    const result = await this.prisma.$queryRawUnsafe(sql, ...paramValues) as T[];
     return result;
   }
 

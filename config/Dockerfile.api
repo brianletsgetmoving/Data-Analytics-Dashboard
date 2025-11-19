@@ -1,0 +1,37 @@
+# Dockerfile for Node.js API service with Python 3.11 runtime
+FROM node:20
+
+# Install Python 3.11 and required system dependencies
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3.11-dev \
+    python3-pip \
+    python3.11-venv \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create symlinks for python and pip
+RUN ln -sf /usr/bin/python3.11 /usr/bin/python && \
+    ln -sf /usr/bin/python3.11 /usr/bin/python3
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files for dependency installation
+COPY app/api/package*.json ./app/api/
+
+# Install Node.js dependencies
+WORKDIR /app/app/api
+RUN npm install
+
+# Install Python dependencies
+WORKDIR /app
+COPY requirements.txt pyproject.toml ./
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Expose API port
+EXPOSE 3001
+
+# Default command (can be overridden in docker-compose.yml)
+CMD ["npm", "run", "dev"]
+

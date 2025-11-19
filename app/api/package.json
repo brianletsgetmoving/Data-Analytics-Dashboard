@@ -4,7 +4,7 @@
   "description": "Node.js/Express API for Data Analytics Dashboard",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch --tsconfig tsconfig.json src/index.ts",
+    "dev": "tsx watch --tsconfig tsconfig.json --tsconfig-paths src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate --schema=../../prisma/schema.prisma",
