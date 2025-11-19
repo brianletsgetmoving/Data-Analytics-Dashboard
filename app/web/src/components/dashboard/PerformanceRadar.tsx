@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRadarChartQuery } from '@/hooks/useAnalytics';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import type { SalesRadar } from '@/shared/types';
 

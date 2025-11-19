@@ -13,6 +13,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { QueryService } from '../services/QueryService';
+import { normalizeQueryParams } from '../utils/queryParams';
 import {
   RevenueMetrics,
   MonthlyMetrics,
@@ -51,7 +52,8 @@ export function createAnalyticsRouter(queryService: QueryService): Router {
    */
   router.get('/revenue', async (req: Request, res: Response<AnalyticsResponse<RevenueMetrics[]>>) => {
     try {
-      const periodType = periodTypeSchema.parse(req.query.periodType || 'monthly');
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const periodType = periodTypeSchema.parse(normalizedQuery.period_type || 'monthly');
       
       const results = await queryService.executeQuery<RevenueMetrics>(
         'revenue_trends.sql'
@@ -89,7 +91,8 @@ export function createAnalyticsRouter(queryService: QueryService): Router {
    */
   router.get('/metrics', async (req: Request, res: Response<AnalyticsResponse<MonthlyMetrics[]>>) => {
     try {
-      const filters = filterParamsSchema.parse(req.query);
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
 
       const results = await queryService.executeQuery<MonthlyMetrics>(
         'monthly_metrics_summary.sql',
@@ -125,7 +128,8 @@ export function createAnalyticsRouter(queryService: QueryService): Router {
    */
   router.get('/heatmap', async (req: Request, res: Response<AnalyticsResponse<ActivityHeatmap[]>>) => {
     try {
-      const filters = filterParamsSchema.parse(req.query);
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
 
       const results = await queryService.executeQuery<ActivityHeatmap>(
         'analytics/heatmap_revenue_by_branch_month.sql',
@@ -161,8 +165,9 @@ export function createAnalyticsRouter(queryService: QueryService): Router {
    */
   router.get('/radar', async (req: Request, res: Response<AnalyticsResponse<SalesRadar[]>>) => {
     try {
-      const dimension = dimensionSchema.parse(req.query.dimension || 'customer');
-      const filters = filterParamsSchema.parse(req.query);
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const dimension = dimensionSchema.parse(normalizedQuery.dimension || req.query.dimension || 'customer');
+      const filters = filterParamsSchema.parse(normalizedQuery);
 
       let results: SalesRadar[];
 
@@ -227,7 +232,8 @@ export function createAnalyticsRouter(queryService: QueryService): Router {
    */
   router.get('/salesperson-performance', async (req: Request, res: Response<AnalyticsResponse<SalesPersonPerformance[]>>) => {
     try {
-      const filters = filterParamsSchema.parse(req.query);
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
 
       const results = await queryService.executeQuery<SalesPersonPerformance>(
         'revenue_by_sales_person.sql',
@@ -263,7 +269,8 @@ export function createAnalyticsRouter(queryService: QueryService): Router {
    */
   router.get('/branch-performance', async (req: Request, res: Response<AnalyticsResponse<BranchPerformance[]>>) => {
     try {
-      const filters = filterParamsSchema.parse(req.query);
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
 
       const results = await queryService.executeQuery<BranchPerformance>(
         'revenue_by_branch.sql',

@@ -70,8 +70,10 @@ export class QueryService {
     const { sql: finalSql, parameters } = this.injectFilters(sql, filters);
 
     // Execute using Prisma $queryRaw with parameterized query
-    const result = await this.prisma.$queryRawUnsafe(finalSql, ...parameters) as T[];
-    return result;
+    const result = await this.prisma.$queryRawUnsafe(finalSql, ...parameters);
+    
+    // Transform results to handle Date and Decimal types
+    return this.transformResult<T>(result as unknown[]);
   }
 
   /**
@@ -97,8 +99,10 @@ export class QueryService {
       }
     });
 
-    const result = await this.prisma.$queryRawUnsafe(sql, ...paramValues) as T[];
-    return result;
+    const result = await this.prisma.$queryRawUnsafe(sql, ...paramValues);
+    
+    // Transform results to handle Date and Decimal types
+    return this.transformResult<T>(result as unknown[]);
   }
 
   /**

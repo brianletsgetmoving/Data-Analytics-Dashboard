@@ -40,6 +40,12 @@ enum Gender {
   UNCERTAIN
 }
 
+enum LeadType {
+  BAD
+  LOST
+  STANDARD
+}
+
 // Model 1: Job (unified from 7 CSV files, 2019-2025)
 model Job {
   id                 String     @id @default(uuid())
@@ -102,33 +108,9 @@ model Job {
   @@map("jobs")
 }
 
-// Model 2: BadLead
-model BadLead {
-  id               String    @id @default(uuid())
-  provider         String?
-  customerName     String?   @map("customer_name")
-  customerEmail    String?   @map("customer_email")
-  customerPhone    String?   @map("customer_phone")
-  moveDate         DateTime? @map("move_date") @db.Date
-  dateLeadReceived DateTime? @map("date_lead_received") @db.Date
-  leadBadReason    String?   @map("lead_bad_reason")
-  customerId       String?   @map("customer_id")
-  leadStatusId     String?   @map("lead_status_id")
-  leadSourceId     String?   @map("lead_source_id")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-
-  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  leadStatus LeadStatus? @relation(fields: [leadStatusId], references: [id], onDelete: SetNull)
-  leadSource LeadSource? @relation(fields: [leadSourceId], references: [id], onDelete: SetNull)
-
-  @@index([customerId])
-  @@index([customerEmail])
-  @@index([customerPhone])
-  @@index([leadStatusId])
-  @@index([leadSourceId])
-  @@map("bad_leads")
-}
+// Model 2: BadLead (DEPRECATED - merged into Lead)
+// This model is kept for reference but will be removed after migration
+// All BadLead records should be migrated to Lead with leadType='BAD'
 
 // Model 3: BookedOpportunity
 model BookedOpportunity {
@@ -157,8 +139,7 @@ model BookedOpportunity {
   customer    Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
   salesPerson SalesPerson? @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
   branch      Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  leadStatus  LeadStatus[]
-  lostLeads   LostLead[]
+  leads       Lead[]
 
   @@index([customerId])
   @@index([salesPersonId])
@@ -171,58 +152,56 @@ model BookedOpportunity {
   @@map("booked_opportunities")
 }
 
-// Model 4: LeadStatus
-model LeadStatus {
-  id                  String   @id @default(uuid())
-  quoteNumber         String   @unique @map("quote_number")
-  bookedOpportunityId String?  @map("booked_opportunity_id")
-  branchName          String?  @map("branch_name")
-  branchId            String?  @map("branch_id")
+// Model 4: Lead (formerly LeadStatus, merged with BadLead and LostLead)
+model Lead {
+  id                  String    @id @default(uuid())
+  quoteNumber         String    @unique @map("quote_number")
+  leadType            LeadType? @map("lead_type") @default(STANDARD)
+  bookedOpportunityId String?   @map("booked_opportunity_id")
+  branchName          String?   @map("branch_name")
+  branchId            String?   @map("branch_id")
   status              String?
-  salesPersonId       String?  @map("sales_person_id")
-  timeToContact       String?  @map("time_to_contact")
-  referralSource      String?  @map("referral_source")
-  leadSourceId        String?  @map("lead_source_id")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  salesPersonId       String?   @map("sales_person_id")
+  timeToContact       String?   @map("time_to_contact")
+  referralSource      String?   @map("referral_source")
+  leadSourceId        String?   @map("lead_source_id")
+  // Fields from BadLead
+  provider            String?
+  customerName        String?   @map("customer_name")
+  customerEmail       String?   @map("customer_email")
+  customerPhone       String?   @map("customer_phone")
+  moveDate            DateTime? @map("move_date") @db.Date
+  dateLeadReceived    DateTime? @map("date_lead_received") @db.Date
+  leadBadReason       String?   @map("lead_bad_reason")
+  // Fields from LostLead
+  name                String?
+  lostDate            DateTime? @map("lost_date") @db.Date
+  reason              String?
+  dateReceived        DateTime? @map("date_received") @db.Timestamp
+  timeToFirstContact  String?   @map("time_to_first_contact")
+  customerId          String?   @map("customer_id")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
 
   bookedOpportunity BookedOpportunity? @relation(fields: [bookedOpportunityId], references: [id], onDelete: SetNull)
   salesPerson       SalesPerson?       @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
   leadSource        LeadSource?        @relation(fields: [leadSourceId], references: [id], onDelete: SetNull)
   branch            Branch?            @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  badLeads          BadLead[]
+  customer          Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
   @@index([bookedOpportunityId])
   @@index([salesPersonId])
   @@index([leadSourceId])
   @@index([branchId])
   @@index([leadSourceId, createdAt])
-  @@map("lead_status")
+  @@index([customerId])
+  @@index([leadType])
+  @@map("leads")
 }
 
-// Model 5: LostLead
-model LostLead {
-  id                  String    @id @default(uuid())
-  quoteNumber         String    @unique @map("quote_number")
-  bookedOpportunityId String?   @map("booked_opportunity_id")
-  name                String?
-  lostDate            DateTime? @map("lost_date") @db.Date
-  moveDate            DateTime? @map("move_date") @db.Date
-  reason              String?
-  dateReceived        DateTime? @map("date_received") @db.Timestamp
-  timeToFirstContact  String?   @map("time_to_first_contact")
-  leadSourceId        String?   @map("lead_source_id")
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
-
-  bookedOpportunity BookedOpportunity? @relation(fields: [bookedOpportunityId], references: [id], onDelete: SetNull)
-  leadSource        LeadSource?        @relation(fields: [leadSourceId], references: [id], onDelete: SetNull)
-
-  @@index([bookedOpportunityId])
-  @@index([leadSourceId])
-  @@index([reason])
-  @@map("lost_leads")
-}
+// Model 5: LostLead (DEPRECATED - merged into Lead)
+// This model is kept for reference but will be removed after migration
+// All LostLead records should be migrated to Lead with leadType='LOST'
 
 // Model 6: UserPerformance
 model UserPerformance {
@@ -303,8 +282,8 @@ model Customer {
   updatedAt          DateTime @updatedAt @map("updated_at")
 
   jobs                Job[]
-  badLeads            BadLead[]
   bookedOpportunities BookedOpportunity[]
+  leads               Lead[]
 
   @@index([email])
   @@index([phone])
@@ -322,19 +301,17 @@ model Customer {
 
 // Model 9: SalesPerson (Lookup Table for Normalized Sales Person Names)
 model SalesPerson {
-  id             String   @id @default(uuid())
-  name           String   @unique
-  normalizedName String   @map("normalized_name")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   jobs                Job[]
   bookedOpportunities BookedOpportunity[]
-  leadStatus          LeadStatus[]
+  leads               Lead[]
   userPerformance     UserPerformance[]
   salesPerformance    SalesPerformance[]
 
-  @@index([normalizedName])
   @@map("sales_persons")
 }
 
@@ -347,9 +324,7 @@ model LeadSource {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  leadStatus LeadStatus[]
-  badLeads   BadLead[]
-  lostLeads  LostLead[]
+  leads      Lead[]
 
   @@index([category])
   @@index([isActive])
@@ -358,20 +333,18 @@ model LeadSource {
 
 // Model 11: Branch (Lookup Table for Normalized Branch Names)
 model Branch {
-  id             String   @id @default(uuid())
-  name           String   @unique
-  normalizedName String   @map("normalized_name")
-  city           String?
-  state          String?
-  isActive       Boolean  @default(true) @map("is_active")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(uuid())
+  name      String   @unique
+  city      String?
+  state     String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   jobs                Job[]
   bookedOpportunities BookedOpportunity[]
-  leadStatus          LeadStatus[]
+  leads               Lead[]
 
-  @@index([normalizedName])
   @@index([city])
   @@index([isActive])
   @@map("branches")

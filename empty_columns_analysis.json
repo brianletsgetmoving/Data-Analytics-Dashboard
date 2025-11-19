@@ -1,0 +1,908 @@
+{
+  "generated_at": "2025-11-19T15:43:07.155525",
+  "tables": {
+    "jobs": {
+      "total_rows": 181618,
+      "columns": {
+        "job_id": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "job_number": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "opportunity_status": {
+          "null_count": 181618,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        },
+        "job_date": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "sales_person_name": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "sales_person_id": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "branch_name": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "branch_id": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "job_type": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "customer_name": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "customer_email": {
+          "null_count": 9113,
+          "null_percentage": 5.02,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 172505,
+          "fillable": true
+        },
+        "customer_phone": {
+          "null_count": 1588,
+          "null_percentage": 0.87,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 180030,
+          "fillable": true
+        },
+        "referral_source": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "affiliate_name": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "created_at_utc": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "booked_at_utc": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "hourly_rate_quoted": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "total_estimated_cost": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "actual_number_crew": {
+          "null_count": 181618,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        },
+        "actual_number_trucks": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "hourly_rate_billed": {
+          "null_count": 112536,
+          "null_percentage": 61.96,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 69082,
+          "fillable": true
+        },
+        "total_actual_cost": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "origin_address": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "origin_street": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 12992,
+          "empty_percentage": 7.15,
+          "non_null_count": 181618,
+          "fillable": true
+        },
+        "origin_city": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "origin_state": {
+          "null_count": 4824,
+          "null_percentage": 2.66,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 176794,
+          "fillable": true
+        },
+        "origin_zip": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "origin_type": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "destination_address": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "destination_street": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 30281,
+          "empty_percentage": 16.67,
+          "non_null_count": 181618,
+          "fillable": true
+        },
+        "destination_city": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "destination_state": {
+          "null_count": 18546,
+          "null_percentage": 10.21,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 163072,
+          "fillable": true
+        },
+        "destination_zip": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "destination_type": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 181618,
+          "fillable": false
+        },
+        "customer_id": {
+          "null_count": 181618,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        }
+      }
+    },
+    "bad_leads": {
+      "total_rows": 293228,
+      "columns": {
+        "provider": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 293228,
+          "fillable": false
+        },
+        "customer_name": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 293228,
+          "fillable": false
+        },
+        "customer_email": {
+          "null_count": 91220,
+          "null_percentage": 31.11,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 202008,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/bad-leads.xlsx - data.csv",
+              "csv_column": "Customer Email",
+              "db_column": "customer_email",
+              "target_table": "bad_leads"
+            }
+          ]
+        },
+        "customer_phone": {
+          "null_count": 7020,
+          "null_percentage": 2.39,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 286208,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/bad-leads.xlsx - data.csv",
+              "csv_column": "Customer Phone",
+              "db_column": "customer_phone",
+              "target_table": "bad_leads"
+            }
+          ]
+        },
+        "move_date": {
+          "null_count": 65256,
+          "null_percentage": 22.25,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 227972,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/bad-leads.xlsx - data.csv",
+              "csv_column": "Move Date",
+              "db_column": "move_date",
+              "target_table": "bad_leads"
+            }
+          ]
+        },
+        "date_lead_received": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "lead_bad_reason": {
+          "null_count": 552,
+          "null_percentage": 0.19,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 292676,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/bad-leads.xlsx - data.csv",
+              "csv_column": "Lead Bad Reason",
+              "db_column": "lead_bad_reason",
+              "target_table": "bad_leads"
+            }
+          ]
+        },
+        "customer_id": {
+          "null_count": 452,
+          "null_percentage": 0.15,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 292776,
+          "fillable": true
+        },
+        "lead_status_id": {
+          "null_count": 293228,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        },
+        "lead_source_id": {
+          "null_count": 293228,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        }
+      }
+    },
+    "booked_opportunities": {
+      "total_rows": 56570,
+      "columns": {
+        "quote_number": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56570,
+          "fillable": false
+        },
+        "status": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56570,
+          "fillable": false
+        },
+        "customer_name": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56570,
+          "fillable": false
+        },
+        "email": {
+          "null_count": 2,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56568,
+          "fillable": true
+        },
+        "phone_number": {
+          "null_count": 68,
+          "null_percentage": 0.12,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56502,
+          "fillable": true
+        },
+        "branch_name": {
+          "null_count": 1,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56569,
+          "fillable": true
+        },
+        "branch_id": {
+          "null_count": 1,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56569,
+          "fillable": true
+        },
+        "moving_from": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56570,
+          "fillable": false
+        },
+        "moving_to": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56570,
+          "fillable": false
+        },
+        "service_date": {
+          "null_count": 1,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56569,
+          "fillable": true
+        },
+        "service_type": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "hourly_rate": {
+          "null_count": 1,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56569,
+          "fillable": true
+        },
+        "estimated_amount": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "invoiced_amount": {
+          "null_count": 1,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56569,
+          "fillable": true
+        },
+        "referral_source": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "sales_person_id": {
+          "null_count": 56570,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        },
+        "booked_date": {
+          "null_count": 3,
+          "null_percentage": 0.01,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 56567,
+          "fillable": true
+        },
+        "customer_id": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        }
+      }
+    },
+    "lead_status": {
+      "total_rows": 277176,
+      "columns": {
+        "quote_number": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 277176,
+          "fillable": false
+        },
+        "booked_opportunity_id": {
+          "null_count": 277176,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        },
+        "branch_name": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 277176,
+          "fillable": false
+        },
+        "branch_id": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 277176,
+          "fillable": false
+        },
+        "status": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 277176,
+          "fillable": false
+        },
+        "sales_person_id": {
+          "null_count": 277176,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        },
+        "time_to_contact": {
+          "null_count": 20361,
+          "null_percentage": 7.35,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 256815,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/lead-status.csv",
+              "csv_column": "Time to Contact",
+              "db_column": "time_to_contact",
+              "target_table": "lead_status"
+            }
+          ]
+        },
+        "referral_source": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 277176,
+          "fillable": false
+        },
+        "lead_source_id": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 277176,
+          "fillable": false
+        }
+      }
+    },
+    "lost_leads": {
+      "total_rows": 129347,
+      "columns": {
+        "quote_number": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 129347,
+          "fillable": false
+        },
+        "booked_opportunity_id": {
+          "null_count": 129347,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        },
+        "name": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 129347,
+          "fillable": false
+        },
+        "lost_date": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 129347,
+          "fillable": false
+        },
+        "move_date": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "reason": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 129347,
+          "fillable": false
+        },
+        "date_received": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 129347,
+          "fillable": false
+        },
+        "time_to_first_contact": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "lead_source_id": {
+          "null_count": 129347,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        }
+      }
+    },
+    "user_performance": {
+      "total_rows": 59,
+      "columns": {
+        "name": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 59,
+          "fillable": false
+        },
+        "sales_person_id": {
+          "null_count": 59,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        },
+        "user_status": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 59,
+          "fillable": false
+        },
+        "total_calls": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 59,
+          "fillable": false
+        },
+        "avg_calls_per_day": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "inbound_count": {
+          "null_count": 59,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/RingCentral_PR_Users_Users_11_17_2025_3_24_34_PM.xlsx - Users.csv",
+              "csv_column": "# Inbound",
+              "db_column": "inbound_count",
+              "target_table": "user_performance"
+            }
+          ]
+        },
+        "outbound_count": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "missed_percent": {
+          "null_count": 59,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/RingCentral_PR_Users_Users_11_17_2025_3_24_34_PM.xlsx - Users.csv",
+              "csv_column": "% Missed (w/VM)",
+              "db_column": "missed_percent",
+              "target_table": "user_performance"
+            }
+          ]
+        },
+        "avg_handle_time": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        }
+      }
+    },
+    "sales_performance": {
+      "total_rows": 149,
+      "columns": {
+        "name": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 149,
+          "fillable": false
+        },
+        "sales_person_id": {
+          "null_count": 149,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true
+        },
+        "leads_received": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 149,
+          "fillable": false
+        },
+        "bad": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "percent_bad": {
+          "null_count": 149,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/sales-person-performance (1).xlsx - data (1).csv",
+              "csv_column": "% Bad",
+              "db_column": "percent_bad",
+              "target_table": "sales_performance"
+            }
+          ]
+        },
+        "sent": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "percent_sent": {
+          "null_count": 149,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/sales-person-performance (1).xlsx - data (1).csv",
+              "csv_column": "% Sent",
+              "db_column": "percent_sent",
+              "target_table": "sales_performance"
+            }
+          ]
+        },
+        "pending": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "percent_pending": {
+          "null_count": 149,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/sales-person-performance (1).xlsx - data (1).csv",
+              "csv_column": "% Pending",
+              "db_column": "percent_pending",
+              "target_table": "sales_performance"
+            }
+          ]
+        },
+        "booked": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "percent_booked": {
+          "null_count": 149,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/sales-person-performance (1).xlsx - data (1).csv",
+              "csv_column": "% Booked",
+              "db_column": "percent_booked",
+              "target_table": "sales_performance"
+            }
+          ]
+        },
+        "lost": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "percent_lost": {
+          "null_count": 149,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/sales-person-performance (1).xlsx - data (1).csv",
+              "csv_column": "% Lost",
+              "db_column": "percent_lost",
+              "target_table": "sales_performance"
+            }
+          ]
+        },
+        "cancelled": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "percent_cancelled": {
+          "null_count": 149,
+          "null_percentage": 100.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 0,
+          "fillable": true,
+          "raw_data_sources": [
+            {
+              "raw_file": "data/raw/sales-person-performance (1).xlsx - data (1).csv",
+              "csv_column": "% Cancelled",
+              "db_column": "percent_cancelled",
+              "target_table": "sales_performance"
+            }
+          ]
+        },
+        "booked_total": {
+          "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+        },
+        "average_booking": {
+          "null_count": 0,
+          "null_percentage": 0.0,
+          "empty_count": 0,
+          "empty_percentage": 0.0,
+          "non_null_count": 149,
+          "fillable": false
+        }
+      }
+    },
+    "customers": {
+      "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+    },
+    "sales_persons": {
+      "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+    },
+    "branches": {
+      "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+    },
+    "lead_sources": {
+      "error": "current transaction is aborted, commands ignored until end of transaction block\n"
+    }
+  },
+  "summary": {
+    "total_tables": 11,
+    "total_columns_analyzed": 107,
+    "columns_with_nulls": 80,
+    "fillable_columns": 13
+  }
+}

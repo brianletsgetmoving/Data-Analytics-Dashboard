@@ -30,14 +30,6 @@ function ActivityHeatmap() {
     )
   ).sort();
 
-  const chartData = branches.map((branch) => ({
-    branch,
-    ...months.reduce((acc, month) => {
-      acc[month] = heatmapData[branch]?.[month] ?? 0;
-      return acc;
-    }, {} as Record<string, number>),
-  }));
-
   // Calculate max value for color scaling
   const maxValue = Math.max(
     ...(data?.data?.map((item: ActivityHeatmapType) => item.value ?? 0) || [0])
