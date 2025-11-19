@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 import psycopg2
 import logging
+import time
 from typing import Dict, List
 from datetime import datetime
 
@@ -270,12 +271,21 @@ def migrate_badleads_to_leads(conn, dry_run: bool = True, batch_size: int = 1000
         
         if not has_customer_id:
             logger.info("Adding customer_id column to leads table...")
+            # Check what type customer_id should be (match customers.id type)
             cursor.execute("""
+                SELECT data_type FROM information_schema.columns 
+                WHERE table_name = 'customers' AND column_name = 'id'
+            """)
+            customer_id_type = cursor.fetchone()[0]
+            logger.info(f"  customers.id type: {customer_id_type}")
+            
+            # Add column without foreign key first, then we'll add the constraint after migration
+            cursor.execute(f"""
                 ALTER TABLE leads 
-                ADD COLUMN customer_id uuid REFERENCES customers(id) ON DELETE SET NULL
+                ADD COLUMN customer_id {customer_id_type}
             """)
             conn.commit()
-            logger.info("✓ Added customer_id column")
+            logger.info("✓ Added customer_id column (foreign key will be added after migration)")
         
         start_time = time.time()
         
@@ -448,8 +458,8 @@ def migrate_lostleads_to_leads(conn, dry_run: bool = True, batch_size: int = 100
             UPDATE leads l
             SET 
                 lead_type = CASE 
-                    WHEN l.lead_type = 'BAD' THEN 'BAD'  -- Keep BAD if already set
-                    ELSE 'LOST'
+                    WHEN l.lead_type = 'BAD'::lead_type THEN 'BAD'::lead_type  -- Keep BAD if already set
+                    ELSE 'LOST'::lead_type
                 END,
                 name = COALESCE(l.name, ll.name),
                 lost_date = COALESCE(l.lost_date, ll.lost_date),
@@ -466,39 +476,66 @@ def migrate_lostleads_to_leads(conn, dry_run: bool = True, batch_size: int = 100
         updated_count = cursor.rowcount
         logger.info(f"Updated {updated_count} existing lead records with LostLead data")
         
-        # Step 2: Insert new lead records for LostLeads with quote_numbers not in leads
-        cursor.execute("""
-            INSERT INTO leads (
-                id, quote_number, lead_type,
-                name, lost_date, move_date, reason,
-                date_received, time_to_first_contact,
-                booked_opportunity_id, lead_source_id,
-                created_at, updated_at
-            )
-            SELECT 
-                ll.id,
-                ll.quote_number,
-                'LOST'::lead_type,
-                ll.name,
-                ll.lost_date,
-                ll.move_date,
-                ll.reason,
-                ll.date_received,
-                ll.time_to_first_contact,
-                ll.booked_opportunity_id,
-                ll.lead_source_id,
-                ll.created_at,
-                NOW()
-            FROM lost_leads ll
-            WHERE NOT EXISTS (
-                SELECT 1 FROM leads l WHERE l.quote_number = ll.quote_number
-            )
-            ON CONFLICT (quote_number) DO NOTHING
-        """)
-        inserted_count = cursor.rowcount
-        logger.info(f"Inserted {inserted_count} new lead records from LostLeads")
+        # Step 2: Insert new lead records for LostLeads with quote_numbers not in leads (BATCH PROCESSING)
+        logger.info("Inserting LostLead records (batch processing)...")
         
-        conn.commit()
+        inserted_count = 0
+        batch_num = 0
+        total_batches = (total_lostleads + batch_size - 1) // batch_size
+        
+        while True:
+            batch_start = time.time()
+            cursor.execute("""
+                INSERT INTO leads (
+                    id, quote_number, lead_type,
+                    name, lost_date, move_date, reason,
+                    date_received, time_to_first_contact,
+                    booked_opportunity_id, lead_source_id,
+                    created_at, updated_at
+                )
+                SELECT 
+                    ll.id,
+                    ll.quote_number,
+                    'LOST'::lead_type,
+                    ll.name,
+                    ll.lost_date,
+                    ll.move_date,
+                    ll.reason,
+                    ll.date_received,
+                    ll.time_to_first_contact,
+                    ll.booked_opportunity_id,
+                    ll.lead_source_id,
+                    ll.created_at,
+                    NOW()
+                FROM lost_leads ll
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM leads l WHERE l.quote_number = ll.quote_number
+                )
+                AND NOT EXISTS (
+                    SELECT 1 FROM leads l WHERE l.id = ll.id
+                )
+                LIMIT %s
+            """, (batch_size,))
+            
+            batch_inserted = cursor.rowcount
+            inserted_count += batch_inserted
+            conn.commit()
+            
+            batch_num += 1
+            batch_time = time.time() - batch_start
+            elapsed = time.time() - start_time
+            rate = inserted_count / elapsed if elapsed > 0 else 0
+            
+            logger.info(f"  Batch {batch_num}/{total_batches}: Inserted {batch_inserted:,} records "
+                       f"(Total: {inserted_count:,}/{total_lostleads:,}, "
+                       f"Rate: {rate:.0f} records/sec, "
+                       f"Elapsed: {elapsed:.1f}s)")
+            
+            if batch_inserted == 0:
+                break
+        
+        total_time = time.time() - start_time
+        logger.info(f"✓ Completed LostLead migration: {inserted_count:,} records inserted in {total_time:.1f}s")
         return updated_count + inserted_count
     
     except Exception as e:
@@ -637,11 +674,43 @@ def main():
         
         # Step 5: Migrate BadLead records
         logger.info("\nStep 5: Migrating BadLead records...")
-        badlead_count = migrate_badleads_to_leads(conn, dry_run)
+        badlead_count = migrate_badleads_to_leads(conn, dry_run, batch_size=10000)
         
         # Step 6: Migrate LostLead records
-        logger.info("\nStep 6: Migrating LostLead records...")
-        lostlead_count = migrate_lostleads_to_leads(conn, dry_run)
+        logger.info("")
+        logger.info("Step 6: Migrating LostLead records...")
+        lostlead_count = migrate_lostleads_to_leads(conn, dry_run, batch_size=10000)
+        
+        # Step 7: Add foreign key constraint for customer_id if it doesn't exist
+        if not dry_run:
+            logger.info("")
+            logger.info("Step 7: Adding foreign key constraint for customer_id...")
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT 1 FROM information_schema.table_constraints 
+                        WHERE table_name = 'leads' 
+                        AND constraint_name = 'leads_customer_id_fkey'
+                    )
+                """)
+                fk_exists = cursor.fetchone()[0]
+                
+                if not fk_exists:
+                    cursor.execute("""
+                        ALTER TABLE leads 
+                        ADD CONSTRAINT leads_customer_id_fkey 
+                        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
+                    """)
+                    conn.commit()
+                    logger.info("✓ Added foreign key constraint for customer_id")
+                else:
+                    logger.info("Foreign key constraint already exists")
+            except Exception as e:
+                logger.warning(f"Could not add foreign key constraint: {e}")
+                conn.rollback()
+            finally:
+                cursor.close()
         
         # Step 7: Update foreign key references
         logger.info("\nStep 7: Updating foreign key references...")

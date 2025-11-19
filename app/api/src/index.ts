@@ -4,6 +4,7 @@
  * Main entry point for the Data Analytics API
  */
 
+import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';

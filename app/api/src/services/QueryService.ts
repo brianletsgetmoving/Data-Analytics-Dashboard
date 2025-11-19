@@ -119,6 +119,9 @@ export class QueryService {
         } else if (value !== null && typeof value === 'object' && 'toNumber' in value) {
           // Handle Prisma Decimal type
           transformed[key] = Number(value);
+        } else if (typeof value === 'bigint') {
+          // Handle BigInt (PostgreSQL bigint type)
+          transformed[key] = Number(value);
         } else {
           transformed[key] = value;
         }
