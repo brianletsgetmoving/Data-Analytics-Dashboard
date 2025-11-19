@@ -10,12 +10,16 @@ import psycopg2
 from datetime import datetime
 import logging
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.testing.database_connection import get_db_connection
+from scripts.utils.database import get_db_connection
+from scripts.utils.script_execution import check_and_log_execution
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+SCRIPT_NAME = "populate_customer_timeline_fields"
 
 
 def populate_customer_timeline_fields(conn, dry_run: bool = True):
@@ -113,6 +117,8 @@ def main():
                        help='Run in dry-run mode (default: True)')
     parser.add_argument('--execute', action='store_true',
                        help='Execute the updates (overrides dry-run)')
+    parser.add_argument('--force', action='store_true',
+                       help='Force execution even if already run')
     
     args = parser.parse_args()
     dry_run = not args.execute
@@ -124,6 +130,29 @@ def main():
     
     conn = get_db_connection()
     try:
+        # Check if script should run (idempotency check)
+        if not dry_run and not check_and_log_execution(conn, SCRIPT_NAME, force=args.force,
+                                                      notes="Populate customer timeline fields"):
+            return 0
+        
+        # Check if there's any work to do
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                (SELECT COUNT(*) FROM customers WHERE first_lead_date IS NULL) as missing_first_lead,
+                (SELECT COUNT(*) FROM customers WHERE conversion_date IS NULL) as missing_conversion
+        """)
+        result = cursor.fetchone()
+        cursor.close()
+        
+        missing_first_lead = result[0] if result else 0
+        missing_conversion = result[1] if result else 0
+        
+        if missing_first_lead == 0 and missing_conversion == 0:
+            logger.info("No missing timeline fields found. All customer timeline fields are already populated.")
+            return 0
+        
+        logger.info(f"Found {missing_first_lead} customers missing first_lead_date and {missing_conversion} missing conversion_date")
         logger.info("Populating customer timeline fields...")
         first_lead_count, conversion_count = populate_customer_timeline_fields(conn, dry_run=dry_run)
         

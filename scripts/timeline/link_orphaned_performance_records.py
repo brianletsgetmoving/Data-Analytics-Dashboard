@@ -10,13 +10,17 @@ import psycopg2
 from datetime import datetime
 import logging
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.testing.database_connection import get_db_connection
-from src.utils.name_normalization import find_best_match, calculate_name_similarity
+from scripts.utils.database import get_db_connection
+from scripts.utils.name_normalization import find_best_match, calculate_name_similarity
+from scripts.utils.script_execution import check_and_log_execution
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+SCRIPT_NAME = "link_orphaned_performance_records"
 
 
 def get_all_sales_persons(conn):
@@ -167,6 +171,8 @@ def main():
                        help='Run in dry-run mode (default: True)')
     parser.add_argument('--execute', action='store_true',
                        help='Execute the updates (overrides dry-run)')
+    parser.add_argument('--force', action='store_true',
+                       help='Force execution even if already run')
     
     args = parser.parse_args()
     dry_run = not args.execute
@@ -178,6 +184,29 @@ def main():
     
     conn = get_db_connection()
     try:
+        # Check if script should run (idempotency check)
+        if not dry_run and not check_and_log_execution(conn, SCRIPT_NAME, force=args.force,
+                                                      notes="Link orphaned performance records"):
+            return 0
+        
+        # Check if there's any work to do
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                (SELECT COUNT(*) FROM user_performance WHERE sales_person_id IS NULL) as up_orphaned,
+                (SELECT COUNT(*) FROM sales_performance WHERE sales_person_id IS NULL) as spf_orphaned
+        """)
+        result = cursor.fetchone()
+        cursor.close()
+        
+        up_orphaned = result[0] if result else 0
+        spf_orphaned = result[1] if result else 0
+        
+        if up_orphaned == 0 and spf_orphaned == 0:
+            logger.info("No orphaned performance records found. All records are already linked.")
+            return 0
+        
+        logger.info(f"Found {up_orphaned} orphaned UserPerformance records and {spf_orphaned} orphaned SalesPerformance records")
         logger.info("Linking orphaned UserPerformance records...")
         up_results = link_orphaned_user_performance(conn, dry_run=dry_run)
         

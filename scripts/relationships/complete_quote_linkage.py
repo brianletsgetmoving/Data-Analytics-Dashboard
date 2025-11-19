@@ -2,6 +2,10 @@
 """
 Complete linkage between LeadStatus and BookedOpportunities, 
 and LostLead and BookedOpportunities via quote_number.
+
+NOTE: This script is now largely replaced by database triggers.
+The triggers will automatically link records on insert/update.
+This script is kept for backfilling existing NULL relationships.
 """
 
 import sys
@@ -10,12 +14,16 @@ import psycopg2
 from datetime import datetime
 import logging
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.testing.database_connection import get_db_connection
+from scripts.utils.database import get_db_connection
+from scripts.utils.script_execution import check_and_log_execution
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+SCRIPT_NAME = "complete_quote_linkage"
 
 
 def link_lead_status_to_booked_opportunities(conn, dry_run: bool = True):
@@ -79,6 +87,8 @@ def main():
                        help='Run in dry-run mode (default: True)')
     parser.add_argument('--execute', action='store_true',
                        help='Execute the updates (overrides dry-run)')
+    parser.add_argument('--force', action='store_true',
+                       help='Force execution even if already run')
     
     args = parser.parse_args()
     dry_run = not args.execute
@@ -90,6 +100,31 @@ def main():
     
     conn = get_db_connection()
     try:
+        # Check if script should run (idempotency check)
+        if not dry_run and not check_and_log_execution(conn, SCRIPT_NAME, force=args.force, 
+                                                      notes="Backfill existing NULL relationships"):
+            return 0
+        
+        # Check if there's any work to do
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                (SELECT COUNT(*) FROM lead_status WHERE booked_opportunity_id IS NULL AND quote_number IS NOT NULL) as ls_unlinked,
+                (SELECT COUNT(*) FROM lost_leads WHERE booked_opportunity_id IS NULL AND quote_number IS NOT NULL) as ll_unlinked
+        """)
+        result = cursor.fetchone()
+        cursor.close()
+        
+        ls_unlinked = result[0] if result else 0
+        ll_unlinked = result[1] if result else 0
+        
+        if ls_unlinked == 0 and ll_unlinked == 0:
+            logger.info("No unlinked records found. All relationships are already established.")
+            logger.info("NOTE: Database triggers will automatically link new records going forward.")
+            return 0
+        
+        logger.info(f"Found {ls_unlinked} unlinked LeadStatus records and {ll_unlinked} unlinked LostLead records")
+        
         logger.info("Linking LeadStatus to BookedOpportunities...")
         ls_count = link_lead_status_to_booked_opportunities(conn, dry_run=dry_run)
         
@@ -103,6 +138,9 @@ def main():
         print(f"LostLead records linked: {ll_count}")
         print(f"Total records linked: {ls_count + ll_count}")
         print("="*80 + "\n")
+        
+        if not dry_run:
+            logger.info("NOTE: Database triggers will automatically link new records going forward.")
         
         if dry_run:
             logger.info("Dry run complete. Review the output and run with --execute to apply changes.")

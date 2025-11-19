@@ -9,13 +9,17 @@ from pathlib import Path
 import psycopg2
 import logging
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.testing.database_connection import get_db_connection
-from src.utils.progress_monitor import log_step, log_success, log_error
+from scripts.utils.database import get_db_connection
+from scripts.utils.progress_monitor import log_step, log_success, log_error
+from scripts.utils.script_execution import check_and_log_execution
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+SCRIPT_NAME = "merge_sales_person_variations"
 
 
 # Define name variations to merge (canonical name -> variations)
@@ -171,10 +175,43 @@ def merge_sales_person_variations(conn, canonical_name: str, variation_names: li
 
 def main():
     """Main merge function."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Merge SalesPerson name variations')
+    parser.add_argument('--force', action='store_true',
+                       help='Force execution even if already run')
+    
+    args = parser.parse_args()
+    
     logger.info("Starting SalesPerson name variation merge")
     conn = get_db_connection()
     
     try:
+        # Check if script should run (idempotency check)
+        if not check_and_log_execution(conn, SCRIPT_NAME, force=args.force,
+                                       notes="Merge SalesPerson name variations"):
+            return 0
+        
+        # Check if there's any work to do
+        cursor = conn.cursor()
+        all_names = []
+        for canonical_name, variation_names in NAME_VARIATIONS.items():
+            all_names.extend([canonical_name] + variation_names)
+        
+        placeholders = ','.join(['%s'] * len(all_names))
+        cursor.execute(f"""
+            SELECT COUNT(DISTINCT name)
+            FROM sales_persons
+            WHERE name IN ({placeholders})
+        """, all_names)
+        result = cursor.fetchone()
+        distinct_count = result[0] if result else 0
+        cursor.close()
+        
+        if distinct_count <= len(NAME_VARIATIONS):
+            logger.info("No variations found to merge. All SalesPerson names are already canonical.")
+            return 0
+        
         total_merged = 0
         
         for canonical_name, variation_names in NAME_VARIATIONS.items():

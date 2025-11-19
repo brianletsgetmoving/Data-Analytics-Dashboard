@@ -2,6 +2,10 @@
 """
 Link BadLead records to LeadStatus based on matching criteria.
 Since BadLead doesn't have quote_number, we'll match on email, phone, or name+location.
+
+NOTE: This script is now largely replaced by database triggers.
+The triggers will automatically link records on insert/update.
+This script is kept for backfilling existing NULL relationships.
 """
 
 import sys
@@ -10,12 +14,16 @@ import psycopg2
 from datetime import datetime
 import logging
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add scripts directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.testing.database_connection import get_db_connection
+from scripts.utils.database import get_db_connection
+from scripts.utils.script_execution import check_and_log_execution
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+SCRIPT_NAME = "link_badlead_to_leadstatus"
 
 
 def link_badlead_to_leadstatus(conn, dry_run: bool = True):
@@ -127,6 +135,8 @@ def main():
                        help='Run in dry-run mode (default: True)')
     parser.add_argument('--execute', action='store_true',
                        help='Execute the updates (overrides dry-run)')
+    parser.add_argument('--force', action='store_true',
+                       help='Force execution even if already run')
     
     args = parser.parse_args()
     dry_run = not args.execute
@@ -138,6 +148,31 @@ def main():
     
     conn = get_db_connection()
     try:
+        # Check if script should run (idempotency check)
+        if not dry_run and not check_and_log_execution(conn, SCRIPT_NAME, force=args.force,
+                                                      notes="Backfill existing NULL relationships"):
+            return 0
+        
+        # Check if there's any work to do
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM bad_leads 
+            WHERE lead_status_id IS NULL
+              AND (customer_id IS NOT NULL 
+                   OR customer_email IS NOT NULL 
+                   OR customer_phone IS NOT NULL)
+        """)
+        result = cursor.fetchone()
+        unlinked_count = result[0] if result else 0
+        cursor.close()
+        
+        if unlinked_count == 0:
+            logger.info("No unlinked BadLead records found. All relationships are already established.")
+            logger.info("NOTE: Database triggers will automatically link new records going forward.")
+            return 0
+        
+        logger.info(f"Found {unlinked_count} unlinked BadLead records")
         logger.info("Linking BadLead to LeadStatus...")
         total_matches = link_badlead_to_leadstatus(conn, dry_run=dry_run)
         
@@ -146,6 +181,9 @@ def main():
         print("="*80)
         print(f"Total BadLead records linked: {total_matches}")
         print("="*80 + "\n")
+        
+        if not dry_run:
+            logger.info("NOTE: Database triggers will automatically link new records going forward.")
         
         if dry_run:
             logger.info("Dry run complete. Review the output and run with --execute to apply changes.")

@@ -59,26 +59,36 @@ This project provides a clean foundation for data analytics with:
 
 ## Database Schema
 
-The database consists of 11 models organized around a central **Customer** model:
+The database consists of 11 models organized around a central **Customer** model. All business understanding flows through customers.
+
+### Business Logic Flow
+
+1. **LeadStatus** = Central pool of all leads (BadLeads and LostLeads are compiled into this pool)
+2. **Leads → Customers** = All customers originate from the lead pool
+3. **Customers → BookedOpportunities** = Customers have booked opportunities
+4. **BookedOpportunities → Jobs** = Booked opportunities flow into jobs
+5. **Jobs & BookedOpportunities → SalesPerson & Branch** = Sales person and branch come from jobs and booked opportunities
+6. **SalesPerson & Branch → Performance** = Flows into user performance and sales performance
+7. **LeadSource** = Compiled lookup from all sources (jobs, booked opportunities, lead status, bad leads, lost leads)
 
 ### Core Models
-- **Customer**: Central unified customer model with timeline tracking
-- **Job**: Job records (2019-2025) linked to customers
-- **BookedOpportunity**: Booked opportunities linked to customers
-- **LeadStatus**: Central hub for all lead tracking
-- **BadLead**: Bad lead records
-- **LostLead**: Lost lead records
+- **Customer**: Central unified customer model - all contact details, relationships, and business understanding flow through customers
+- **LeadStatus**: Central pool of all leads (BadLeads and LostLeads compiled here)
+- **BookedOpportunity**: Booked opportunities that come from customers and flow into jobs
+- **Job**: Job records (2019-2025) - only BOOKED/CLOSED jobs are linked to customers
+- **BadLead**: Bad lead records (part of the lead pool)
+- **LostLead**: Lost lead records (part of the lead pool)
 
 ### Performance Models
-- **UserPerformance**: User call performance metrics
-- **SalesPerformance**: Sales person performance metrics
+- **UserPerformance**: User call performance metrics (from SalesPerson & Branch)
+- **SalesPerformance**: Sales person performance metrics (from SalesPerson & Branch)
 
 ### Lookup Tables
-- **SalesPerson**: Normalized sales person names
-- **Branch**: Normalized branch names
-- **LeadSource**: Normalized lead sources with categories
+- **SalesPerson**: Normalized sales person names (extracted from Jobs & BookedOpportunities)
+- **Branch**: Normalized branch names (extracted from Jobs & BookedOpportunities)
+- **LeadSource**: Compiled from ALL sources (Jobs, BookedOpportunities, LeadStatus, BadLeads, LostLeads)
 
-See `docs/database_relationships.md` for complete relationship documentation.
+See `docs/database_relationships.md` for complete relationship documentation and the entity relationship diagram.
 
 ## Setup Instructions
 
@@ -229,19 +239,28 @@ prisma migrate deploy
 ## Key Relationships
 
 ### Customer as Central Model
-- Links to Jobs (one-to-many)
-- Links to BadLeads (one-to-many)
-- Links to BookedOpportunities (one-to-many)
+**All business understanding flows through customers:**
+- Links to Jobs (one-to-many) - completed work for customers
+- Links to BadLeads (one-to-many) - bad leads from the lead pool
+- Links to BookedOpportunities (one-to-many) - opportunities that flow into jobs
+- All contact details are connected to customers
+- All customers originate from the lead pool (LeadStatus)
+
+### Lead Flow
+- **LeadStatus** = Central pool of all leads (BadLeads and LostLeads compiled here)
+- **Leads → Customers** = All customers come from the lead pool
+- **BookedOpportunities → Jobs** = Booked opportunities flow into jobs
 
 ### Quote Number Linking
 - BookedOpportunity, LeadStatus, and LostLead all use `quote_number` for cross-table linking
+- Tracks the journey: Lead (LeadStatus) → Opportunity (BookedOpportunity) → Job or Loss
 
 ### Lookup Tables
-- **SalesPerson**: Normalizes names across Jobs, BookedOpportunities, LeadStatus, UserPerformance, SalesPerformance
-- **Branch**: Normalizes names across Jobs, BookedOpportunities, LeadStatus
-- **LeadSource**: Normalizes and categorizes sources across LeadStatus, BadLeads, LostLeads
+- **SalesPerson**: Extracted from Jobs & BookedOpportunities, flows into UserPerformance & SalesPerformance
+- **Branch**: Extracted from Jobs & BookedOpportunities, flows into performance metrics
+- **LeadSource**: Compiled from ALL sources (Jobs, BookedOpportunities, LeadStatus, BadLeads, LostLeads)
 
-See `docs/database_relationships.md` for complete relationship details.
+See `docs/database_relationships.md` for complete relationship details and the entity relationship diagram.
 
 ## Performance Considerations
 

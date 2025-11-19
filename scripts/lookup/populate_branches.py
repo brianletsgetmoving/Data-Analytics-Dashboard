@@ -11,12 +11,16 @@ from datetime import datetime
 import logging
 import re
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.testing.database_connection import get_db_connection
+from scripts.utils.database import get_db_connection
+from scripts.utils.script_execution import check_and_log_execution
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+SCRIPT_NAME = "populate_branches"
 
 
 def normalize_branch_name(name: str) -> str:
@@ -255,6 +259,8 @@ def main():
                        help='Run in dry-run mode (default: True)')
     parser.add_argument('--execute', action='store_true',
                        help='Execute the updates (overrides dry-run)')
+    parser.add_argument('--force', action='store_true',
+                       help='Force execution even if already run')
     
     args = parser.parse_args()
     dry_run = not args.execute
@@ -266,6 +272,30 @@ def main():
     
     conn = get_db_connection()
     try:
+        # Check if script should run (idempotency check)
+        if not dry_run and not check_and_log_execution(conn, SCRIPT_NAME, force=args.force,
+                                                      notes="Populate branches lookup table"):
+            return 0
+        
+        # Check if there's any work to do
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                (SELECT COUNT(*) FROM jobs WHERE branch_name IS NOT NULL AND branch_id IS NULL) as jobs_unlinked,
+                (SELECT COUNT(*) FROM booked_opportunities WHERE branch_name IS NOT NULL AND branch_id IS NULL) as bo_unlinked,
+                (SELECT COUNT(*) FROM lead_status WHERE branch_name IS NOT NULL AND branch_id IS NULL) as ls_unlinked
+        """)
+        result = cursor.fetchone()
+        cursor.close()
+        
+        jobs_unlinked = result[0] if result else 0
+        bo_unlinked = result[1] if result else 0
+        ls_unlinked = result[2] if result else 0
+        
+        if jobs_unlinked == 0 and bo_unlinked == 0 and ls_unlinked == 0:
+            logger.info("No unlinked records found. All branches are already populated.")
+            return 0
+        
         logger.info("Creating branches...")
         branch_map, created_count = create_branches(conn, dry_run=dry_run)
         

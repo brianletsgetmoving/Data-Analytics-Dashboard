@@ -11,12 +11,16 @@ from datetime import datetime
 import logging
 import re
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.testing.database_connection import get_db_connection
+from scripts.utils.database import get_db_connection
+from scripts.utils.script_execution import check_and_log_execution
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+SCRIPT_NAME = "populate_lead_sources"
 
 
 def normalize_lead_source(source: str) -> tuple[str, str]:
@@ -198,6 +202,8 @@ def main():
                        help='Run in dry-run mode (default: True)')
     parser.add_argument('--execute', action='store_true',
                        help='Execute the updates (overrides dry-run)')
+    parser.add_argument('--force', action='store_true',
+                       help='Force execution even if already run')
     
     args = parser.parse_args()
     dry_run = not args.execute
@@ -209,6 +215,30 @@ def main():
     
     conn = get_db_connection()
     try:
+        # Check if script should run (idempotency check)
+        if not dry_run and not check_and_log_execution(conn, SCRIPT_NAME, force=args.force,
+                                                      notes="Populate lead_sources lookup table"):
+            return 0
+        
+        # Check if there's any work to do
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                (SELECT COUNT(*) FROM lead_status WHERE referral_source IS NOT NULL AND lead_source_id IS NULL) as ls_unlinked,
+                (SELECT COUNT(*) FROM booked_opportunities WHERE referral_source IS NOT NULL) as bo_with_source,
+                (SELECT COUNT(*) FROM jobs WHERE referral_source IS NOT NULL) as jobs_with_source
+        """)
+        result = cursor.fetchone()
+        cursor.close()
+        
+        ls_unlinked = result[0] if result else 0
+        bo_with_source = result[1] if result else 0
+        jobs_with_source = result[2] if result else 0
+        
+        if ls_unlinked == 0 and bo_with_source == 0 and jobs_with_source == 0:
+            logger.info("No unlinked records found. All lead sources are already populated.")
+            return 0
+        
         logger.info("Creating lead_sources...")
         source_map, created_count = create_lead_sources(conn, dry_run=dry_run)
         
