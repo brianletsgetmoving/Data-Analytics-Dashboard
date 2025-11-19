@@ -17,6 +17,55 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - analytics-network
+
+  app-api:
+    build:
+      context: ..
+      dockerfile: config/Dockerfile.api
+    container_name: analytics-api
+    working_dir: /app
+    environment:
+      DATABASE_URL: postgresql://buyer:${POSTGRES_PASSWORD:-postgres}@postgres:5432/data_analytics
+      DIRECT_DATABASE_URL: postgresql://buyer:${POSTGRES_PASSWORD:-postgres}@postgres:5432/data_analytics
+      NODE_ENV: development
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ..:/app
+      - /app/app/api/node_modules
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - analytics-network
+    command: sh -c "cd app/api && npm install && npm run dev"
+
+  app-web:
+    build:
+      context: ..
+      dockerfile: config/Dockerfile.web
+    container_name: analytics-web
+    working_dir: /app
+    environment:
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "5173:5173"
+    volumes:
+      - ..:/app
+      - /app/app/web/node_modules
+    depends_on:
+      - app-api
+    networks:
+      - analytics-network
+    command: sh -c "cd app/web && npm install && npm run dev -- --host"
+
+networks:
+  analytics-network:
+    driver: bridge
 
 volumes:
   postgres_data:

@@ -7,6 +7,11 @@ generator client {
   enable_experimental_decimal = true
 }
 
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/api/node_modules/.prisma/client"
+}
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
