@@ -7,7 +7,7 @@ generator client {
   enable_experimental_decimal = true
 }
 
-generator client {
+generator client-js {
   provider = "prisma-client-js"
   output   = "../app/api/node_modules/.prisma/client"
 }
