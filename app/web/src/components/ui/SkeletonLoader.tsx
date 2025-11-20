@@ -2,7 +2,7 @@ interface SkeletonLoaderProps {
   width?: string | number;
   height?: string | number;
   className?: string;
-  variant?: 'card' | 'text' | 'circle';
+  variant?: 'card' | 'text' | 'circle' | 'chart';
 }
 
 function SkeletonLoader({ 
@@ -11,11 +11,12 @@ function SkeletonLoader({
   className = '',
   variant = 'card'
 }: SkeletonLoaderProps) {
-  const baseClasses = 'neo-skeleton';
+  const baseClasses = 'animate-pulse bg-gray-200 dark:bg-slate-700';
   const variantClasses = {
-    card: 'neo-rounded',
-    text: 'h-4',
+    card: 'rounded-xl',
+    text: 'h-4 rounded',
     circle: 'rounded-full',
+    chart: 'rounded-xl',
   };
 
   return (

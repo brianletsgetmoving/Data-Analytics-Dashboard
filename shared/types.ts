@@ -139,3 +139,128 @@ export interface AnalyticsResponse<T> {
   error?: string;
 }
 
+/**
+ * KPI Card Props - For displaying key performance indicators
+ */
+export interface KPIProps {
+  label: string;
+  value: string | number;
+  unit?: string;
+  change?: number; // Percentage
+  statusBadge?: "new" | "beta" | null;
+  trend?: "up" | "down" | "neutral";
+}
+
+/**
+ * Chart Data Point - Generic data point for charts
+ */
+export interface ChartDataPoint {
+  name: string;
+  value: number;
+  value2?: number; // Secondary metric
+  value3?: number; // Tertiary metric
+  color?: string; // Optional color override
+  [key: string]: any; // Allow flexible properties for generic charts
+}
+
+/**
+ * View Type - All available views in the application
+ */
+export type ViewType = 
+  | 'Overview' 
+  | 'Revenue' 
+  | 'Customers' 
+  | 'Jobs' 
+  | 'Sales Performance'
+  | 'Leads'
+  | 'Operational'
+  | 'Geographic'
+  | 'Profitability'
+  | 'Forecasting'
+  | 'Benchmarking';
+
+/**
+ * Time Range Enum
+ */
+export enum TimeRange {
+  Daily = "Daily",
+  Weekly = "Weekly",
+  Monthly = "Monthly",
+  Quarterly = "Quarterly",
+  Yearly = "Yearly",
+}
+
+/**
+ * Date Range Preset - Quick date range selections
+ */
+export type DateRangePreset = 'Today' | 'Last 7 Days' | 'Last 30 Days' | 'This Month' | 'Last Month' | 'Custom';
+
+/**
+ * Filter State - Client-side filter state
+ */
+export interface FilterState {
+  dateRange: string;
+  branch: string;
+  salesPerson: string;
+}
+
+/**
+ * Revenue Data - For revenue trend charts
+ */
+export interface RevenueData {
+  period: string;
+  revenue: number;
+  previousRevenue: number;
+  target?: number;
+}
+
+/**
+ * Customer Segment - Customer segmentation data
+ */
+export interface CustomerSegment {
+  segment: string;
+  count: number;
+  revenue: number;
+}
+
+/**
+ * Job Metric - Job metrics over time
+ */
+export interface JobMetric {
+  period: string;
+  total: number;
+  booked: number;
+  closed: number;
+}
+
+/**
+ * Sales Performer - Sales person performance data
+ */
+export interface SalesPerformer {
+  id: string;
+  name: string;
+  revenue: number;
+  deals: number;
+  conversion: number;
+  avatar?: string;
+}
+
+/**
+ * Heatmap Point - For density heatmap visualizations
+ */
+export interface HeatmapPoint {
+  x: string; // e.g., "Mon", "Tue"
+  y: string; // e.g., "9am", "10am"
+  value: number; // intensity 0-100
+}
+
+/**
+ * Radar Metric - For radar chart visualizations
+ */
+export interface RadarMetric {
+  subject: string;
+  A: number; // Entity 1 (e.g., Agent)
+  B: number; // Entity 2 (e.g., Team Avg)
+  fullMark: number;
+}
+

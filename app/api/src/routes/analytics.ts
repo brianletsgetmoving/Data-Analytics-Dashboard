@@ -300,6 +300,366 @@ export function createAnalyticsRouter(queryService: QueryService): Router {
     }
   });
 
+  /**
+   * GET /api/v1/analytics/customer-demographics
+   * Customer geographic distribution
+   */
+  router.get('/customer-demographics', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'customer_geographic_distribution.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/customer-segments
+   * Customer segmentation by value
+   */
+  router.get('/customer-segments', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'customer_segmentation_by_value.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/job-status-distribution
+   * Job status distribution
+   */
+  router.get('/job-status-distribution', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'job_status_distribution.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/job-trends
+   * Job volume trends over time
+   */
+  router.get('/job-trends', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'job_volume_trends.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/lead-sources
+   * Lead source performance
+   */
+  router.get('/lead-sources', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'lead_source_performance.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/operational-efficiency
+   * Operational efficiency metrics
+   */
+  router.get('/operational-efficiency', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'operational/operational_efficiency.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/forecast
+   * Revenue and job forecasting
+   */
+  router.get('/forecast', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'forecasting/revenue_forecast.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/profitability
+   * Profitability analysis
+   */
+  router.get('/profitability', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'profitability/profitability_analysis.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/geographic-coverage
+   * Geographic coverage analysis
+   */
+  router.get('/geographic-coverage', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'geographic/geographic_coverage_analysis.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/customer-behavior
+   * Customer behavior analysis
+   */
+  router.get('/customer-behavior', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'customer_behavior/customer_journey_analysis.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/benchmarks
+   * Benchmarking data
+   */
+  router.get('/benchmarks', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'benchmarking/industry_benchmarks.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/analytics/lead-conversion
+   * Lead conversion funnel
+   */
+  router.get('/lead-conversion', async (req: Request, res: Response<AnalyticsResponse<any[]>>) => {
+    try {
+      const normalizedQuery = normalizeQueryParams(req.query);
+      const filters = filterParamsSchema.parse(normalizedQuery);
+
+      const results = await queryService.executeQuery<any>(
+        'lead_conversion_funnel.sql',
+        filters
+      );
+
+      res.json({
+        data: results,
+        metadata: {
+          count: results.length,
+          filters_applied: filters,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
   return router;
 }
 

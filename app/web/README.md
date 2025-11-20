@@ -1,110 +1,184 @@
-# Analytics Web Frontend
+# Analytics Dashboard - Frontend
 
-React + Vite frontend application for the Data Analytics Dashboard.
-
-## Technology Stack
-
-- **React 19** - UI library
-- **Vite** - Build tool and dev server
-- **TypeScript** - Type safety
-- **TanStack Query** - Server state management
-- **Recharts** - Data visualization
-- **Tailwind CSS** - Utility-first CSS
-- **Neo-morphic Design System** - Custom design system with soft gradients and glass effects
-
-## Project Structure
-
-```
-app/web/
-├── src/
-│   ├── components/
-│   │   ├── dashboard/      # Dashboard components
-│   │   ├── layout/        # Layout components (Header, Layout)
-│   │   └── ui/            # Reusable UI components (SkeletonLoader)
-│   ├── hooks/             # Custom React hooks (useAnalytics)
-│   ├── pages/             # Page components (Dashboard)
-│   ├── services/          # API client (api.ts)
-│   └── styles/            # CSS files (neomorphic.css, index.css)
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
-```
-
-## Setup
-
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Create `.env` file:
-   ```bash
-   VITE_API_URL=http://localhost:3001
-   ```
-
-3. Start development server:
-   ```bash
-   npm run dev
-   ```
+A comprehensive analytics dashboard built with React, TypeScript, and Tailwind CSS, integrated with the Data Analytics V5 backend API.
 
 ## Features
 
-### Overview Dashboard
-- Revenue trends chart (monthly/quarterly/yearly)
-- KPI cards (Total Jobs, Total Revenue, Booking Rate, Avg Job Value)
-- Period selector with Neo-morphic styling
+### 11 Analytics Views
+- **Overview**: High-level KPIs, revenue trends, top performers, lead sources, activity heatmap
+- **Revenue**: Revenue performance, trends by period, branch revenue breakdown
+- **Customers**: Customer demographics, segmentation, geographic distribution
+- **Jobs**: Job volume trends, status distribution, recent jobs
+- **Sales Performance**: Sales leaderboard, team skill gap analysis, performance metrics
+- **Leads**: Lead conversion funnel, lead sources, conversion metrics
+- **Operational**: Operational efficiency, resource utilization, scheduling metrics
+- **Geographic**: Geographic coverage, top origin cities, route analysis
+- **Profitability**: Profitability trends, margins, ROI analysis
+- **Forecasting**: Revenue and job volume forecasts
+- **Benchmarking**: Performance vs industry benchmarks
 
-### Activity Heatmap
-- Branch-month activity matrix
-- Color-coded revenue visualization
-- Scrollable table layout
+### Key Components
 
-### Performance Radar
-- Multi-dimensional performance comparison
-- Supports customer, salesperson, and branch dimensions
-- Interactive dimension selector
+#### Navigation
+- **Sidebar**: Collapsible sidebar with 11 views organized by category
+- **Breadcrumbs**: Navigation breadcrumbs for drill-down views
+- **View Switcher**: Quick view navigation with search
+- **Mobile Menu**: Full-screen mobile navigation menu
+- **Keyboard Shortcuts**: Ctrl+1-5 for quick navigation
 
-## Design System
+#### Data Visualization
+- **GradientAreaChart**: Area charts with gradient fills and LTTB downsampling
+- **MetricBarChart**: Horizontal/vertical bar charts
+- **DonutChart**: Donut charts with center totals
+- **SkillRadarChart**: Radar charts for multi-dimensional comparisons
+- **DensityHeatmap**: Activity heatmaps for time-based patterns
 
-The application uses a custom Neo-morphic design system with:
-- Soft gradients and shadows
-- Glass morphism effects
-- Consistent spacing and typography
-- Responsive design (mobile-first)
+#### Filtering & Search
+- **DateRangeFilter**: Preset and custom date range selection
+- **AdvancedFilterPanel**: Comprehensive filter panel with all filter options
+- **Global Filter Store**: Zustand store for managing filter state across views
 
-See `src/styles/neomorphic.css` for design system classes.
+#### Tables
+- **DataTable**: Sortable, searchable, paginated data tables with CSV export
 
-## Type Safety
+#### UI Components
+- **KPICard**: Reusable KPI display with trends and badges
+- **ErrorBoundary**: Error boundaries for graceful error handling
+- **EmptyState**: Empty state components for no data scenarios
+- **SkeletonLoader**: Loading skeleton components
 
-All types are imported from `shared/types.ts` to ensure consistency between frontend and backend:
-- `RevenueMetrics`
-- `MonthlyMetrics`
-- `ActivityHeatmap`
-- `SalesRadar`
-- `SalesPersonPerformance`
-- `BranchPerformance`
-- `FilterParams`
-- `AnalyticsResponse<T>`
+### Technical Stack
 
-## API Integration
+- **React 19**: Latest React with hooks
+- **TypeScript**: Full type safety
+- **Tailwind CSS 4**: Utility-first styling with custom design tokens
+- **React Router**: Client-side routing
+- **TanStack Query**: Data fetching and caching
+- **Zustand**: Lightweight state management
+- **Recharts**: Chart library
+- **Lucide React**: Icon library
+- **Vitest**: Testing framework
 
-The API client (`src/services/api.ts`) provides type-safe methods for all analytics endpoints:
-- `getRevenueTrends(periodType)`
-- `getMonthlyMetrics(filters?)`
-- `getHeatmap(filters?)`
-- `getRadar(dimension, filters?)`
-- `getSalesPersonPerformance(filters?)`
-- `getBranchPerformance(filters?)`
+### Project Structure
 
-All methods return `AnalyticsResponse<T>` wrapped data.
+```
+app/web/src/
+├── components/
+│   ├── charts/          # Chart components
+│   ├── filters/         # Filter components
+│   ├── layout/          # Layout components (Sidebar, Header, Layout)
+│   ├── navigation/     # Navigation components (Breadcrumbs, ViewSwitcher)
+│   ├── responsive/      # Mobile/responsive components
+│   ├── tables/          # Table components
+│   ├── ui/              # Reusable UI components
+│   └── accessibility/   # Accessibility components
+├── context/             # React contexts (ThemeContext)
+├── hooks/               # Custom React hooks
+├── pages/               # Page components (11 views)
+├── services/            # API service layer
+├── store/               # Zustand stores
+├── utils/               # Utility functions
+└── __tests__/           # Test files
+```
 
-## Development
+### Getting Started
 
-- **Linting**: `npm run lint`
-- **Build**: `npm run build`
-- **Preview**: `npm run preview`
+```bash
+# Install dependencies
+npm install
 
-## Environment Variables
+# Start development server
+npm run dev
 
-- `VITE_API_URL` - Backend API URL (default: `http://localhost:3001`)
+# Build for production
+npm run build
 
+# Run tests
+npm test
+
+# Run tests with UI
+npm run test:ui
+```
+
+### Environment Variables
+
+Create a `.env` file in `app/web/`:
+
+```env
+VITE_API_URL=http://localhost:3001
+```
+
+### API Integration
+
+The frontend integrates with the backend API at `/api/v1/analytics/`:
+
+- `/revenue` - Revenue trends
+- `/metrics` - Monthly metrics
+- `/heatmap` - Activity heatmap
+- `/radar` - Performance radar
+- `/salesperson-performance` - Sales person metrics
+- `/branch-performance` - Branch metrics
+- `/customer-demographics` - Customer geography
+- `/customer-segments` - Customer segmentation
+- `/job-status-distribution` - Job status breakdown
+- `/job-trends` - Job volume trends
+- `/lead-sources` - Lead source performance
+- `/lead-conversion` - Lead conversion funnel
+- `/operational-efficiency` - Operational metrics
+- `/forecast` - Forecasting data
+- `/profitability` - Profitability analysis
+- `/geographic-coverage` - Geographic data
+- `/customer-behavior` - Customer behavior analysis
+- `/benchmarks` - Benchmarking data
+
+### Features
+
+#### Dark Mode
+Full dark mode support with system preference detection and manual toggle.
+
+#### Responsive Design
+- Mobile-first design
+- Tablet optimization
+- Desktop layouts
+- Touch-friendly interactions
+
+#### Performance
+- LTTB downsampling for large datasets
+- React Query caching
+- Memoized components
+- Code splitting
+
+#### Accessibility
+- Keyboard navigation
+- Screen reader support
+- ARIA labels
+- Skip links
+- Focus management
+
+### Development
+
+The app uses:
+- **Vite** for fast development and building
+- **TypeScript** for type safety
+- **ESLint** for code quality
+- **Vitest** for testing
+
+### Testing
+
+Tests are located in `src/__tests__/`:
+- Component tests
+- Hook tests
+- Utility function tests
+
+Run tests with:
+```bash
+npm test
+```
+
+### Building
+
+```bash
+npm run build
+```
+
+Outputs to `dist/` directory.

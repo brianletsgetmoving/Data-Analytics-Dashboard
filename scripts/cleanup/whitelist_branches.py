@@ -14,7 +14,7 @@ import re
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from scripts.utils.database import get_db_connection
-from scripts.utils.script_execution import check_and_log_execution
+from scripts.utils.script_execution import check_and_log_execution, script_already_executed
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -102,16 +102,38 @@ def is_approved_branch(branch_name: str) -> bool:
     if not branch_name:
         return False
     
+    # Explicitly exclude branches with certain patterns (even if they contain approved names)
+    excluded_patterns = [
+        '(No New Bookings Until Further Notice)',
+        'Let\'S Get Moving',  # Variations like "Abbotsford Let'S Get Moving"
+        'MovedIn',
+        'Cold Call Lead',
+        'Lead Saver',
+        '(On Hold)',
+        'Xxx',
+        'Xxxduplicate',
+        'Xxxno Longer Active',
+        'Xxxxx -- No Longer Active',
+    ]
+    
     normalized = normalize_branch_name(branch_name)
+    for pattern in excluded_patterns:
+        if pattern.upper() in normalized:
+            return False
     
     # Check exact match
     if normalized in [normalize_branch_name(b) for b in APPROVED_BRANCHES]:
         return True
     
     # Check if any approved branch is contained in the name (fuzzy match)
+    # But only if it's a clean match (not with excluded patterns)
     for approved in APPROVED_BRANCHES:
         approved_normalized = normalize_branch_name(approved)
-        if approved_normalized in normalized or normalized in approved_normalized:
+        # Only match if the approved name is the main part (not just a substring)
+        if approved_normalized == normalized:
+            return True
+        # Allow partial match only if the branch name starts with or equals the approved name
+        if normalized.startswith(approved_normalized + ' ') or normalized == approved_normalized:
             return True
     
     return False
@@ -339,6 +361,7 @@ def main():
     
     parser = argparse.ArgumentParser(description='Whitelist approved branches and delete others')
     parser.add_argument('--dry-run', action='store_true', help='Dry run mode (no changes)')
+    parser.add_argument('--force', action='store_true', help='Force execution even if already run')
     
     args = parser.parse_args()
     dry_run = args.dry_run
@@ -347,7 +370,7 @@ def main():
     if not dry_run:
         conn = get_db_connection()
         try:
-            if check_and_log_execution(conn, SCRIPT_NAME):
+            if not args.force and script_already_executed(conn, SCRIPT_NAME):
                 logger.info(f"Script '{SCRIPT_NAME}' has already been executed. Use --force to re-run.")
                 return
         finally:
@@ -404,7 +427,9 @@ def main():
         logger.info("="*80)
         
         if not dry_run:
-            check_and_log_execution(conn, SCRIPT_NAME, log_execution=True)
+            # Log execution
+            from scripts.utils.script_execution import log_script_execution
+            log_script_execution(conn, SCRIPT_NAME, "Branch whitelist cleanup completed")
     
     finally:
         conn.close()
